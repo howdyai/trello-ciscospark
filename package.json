@@ -1,0 +1,25 @@
+{
+  "name": "botkit-trello-ciscospark",
+  "version": "1.0.0",
+  "description": "Cisco Spark Trello Bot built with Botkit",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.botkit.ai/howdy/botkit-trello-ciscospark.git"
+  },
+  "keywords": [
+    "chatbot",
+    "cisco spark",
+    "botkit"
+  ],
+  "author": "Jon Church",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "botkit": "^0.5.5",
+    "express": "^4.15.3"
+  }
+}
