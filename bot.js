@@ -33,6 +33,8 @@ if (!process.env.public_address) {
     process.exit(1);
 }
 
+require('dotenv').config()
+
 var Botkit = require('botkit');
 var debug = require('debug')('botkit:main');
 
