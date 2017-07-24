@@ -33,14 +33,13 @@ if (!process.env.public_address) {
     process.exit(1);
 }
 
-require('dotenv').config()
 
 var Botkit = require('botkit');
 var debug = require('debug')('botkit:main');
 
 // Create the Botkit controller, which controls all instances of the bot.
 var controller = Botkit.sparkbot({
-    // debug: true,
+    debug: true,
     // limit_to_domain: ['mycompany.com'],
     // limit_to_org: 'my_cisco_org_id',
     public_address: process.env.public_address,
