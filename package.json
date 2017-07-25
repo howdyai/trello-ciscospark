@@ -1,7 +1,7 @@
 {
-  "name": "botkit-starter-ciscospark",
+  "name": "botkit-ciscospark-trello",
   "version": "0.0.1",
-  "description": "A starter kit for building a custom Cisco Spark bot with Botkit Studio",
+  "description": "Trello bot for Cisco Spark built with Botkit",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
@@ -29,9 +29,10 @@
   "homepage": "https://github.com/howdyai/botkit-starter-ciscospark",
   "keywords": [
     "bots",
+	"trello",
     "chatbots",
     "Cisco Spark"
   ],
-  "author": "ben@howdy.ai",
+  "author": "jonchurch",
   "license": "ISC"
 }
