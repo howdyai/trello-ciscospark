@@ -12,9 +12,9 @@ module.exports = function(controller) {
 				console.log({data})
 				console.log('Data length: ', data.length)
 				console.log(data[0].organization)
-				let boardList = data.map(el => el.name)// - Belongs to ${el.organization.displayName}`)
-				boardList = boardList.join('\n')
-				bot.reply(message, 'Here are your boards:' + boardList)
+				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)// - Belongs to ${el.organization.displayName}`)
+				boardList = boardList.join('')
+				bot.reply(message, "**Pick a Board, respond with its number:**" + boardList)
 			}
 		})
 	})
