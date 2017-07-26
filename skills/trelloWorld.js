@@ -5,7 +5,7 @@ const t = new Trello(process.env.T_KEY, process.env.T_TOKEN)
 module.exports = function(controller) {
 
 	// list all user boards
-	controller.hears('^boards$', 'direct_message,direct_mention', function(bot, message){
+	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
 		t.get("/1/members/me/boards", { organization: true, fields: 'name,id'}, function(err, data) {
 			if (err) {
 				console.log('err:', err)
@@ -21,7 +21,7 @@ module.exports = function(controller) {
 	})
 	
 	// list all user orgs
-	controller.hears('^orgs$', 'direct_message', function(bot, message) {
+	controller.hears(['^orgs$'], 'direct_message, direct_mention', function(bot, message) {
 
 		t.get('1/members/me/organizations', {fields: 'displayName,id'}, (err, data) => {
 		if (err) {
@@ -37,7 +37,7 @@ module.exports = function(controller) {
 	})
 	
 	// search cards
-	controller.hears('^search(.*)', 'direct_message,direct_mention)', function(bot, message) {
+	controller.hears(['^search(.*)?$'], 'direct_message,direct_mention', function(bot, message) {
 		const query = message.match[1].trim()
 		console.log({query})
 
@@ -60,5 +60,13 @@ module.exports = function(controller) {
 			bot.reply(message, "**Search Results:**" + searchResults)
 		}
 		})
+	})
+
+	controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
+		console.log('catchall message: ',message.text)
+		console.log('message.match', message.match)
+		console.log('message.match[1]:', message.match[1])
+		console.log('message.match[0]: ', message.match[0])
+		bot.reply(message, 'Catchall, I will persist after you perish. I heard: ' + message.text)
 	})
 }

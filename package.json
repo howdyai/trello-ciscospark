@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "body-parser": "^1.15.2",
-    "botkit": "^0.5",
+    "botkit": "jonchurch/botkit#spark-mention",
     "dashbot": "0.7.4",
     "debug": "^2.6.0",
     "dotenv": "^4.0.0",
