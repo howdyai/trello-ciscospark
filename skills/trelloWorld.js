@@ -91,6 +91,9 @@ module.exports = function(controller) {
 
 	controller.on('bot_space_join', (bot, message) => {
 		message.trello = {}
+		// this check will need to happen in a middleware before all receiveMessage events
+		// which I don't think this would trigger anyways, so we need to have a check here too probably
+		// or at least want the opportunity to have a different message in this particular context
 		if (! message.trello.defaultBoard && ! message.trello.defaultList) {
 			
 			t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name', organization: true, fields: 'name,id'}, function(err, data) {
@@ -103,18 +106,23 @@ module.exports = function(controller) {
 
 					bot.startConversationWithActor(message, function(err, convo) {
 						
-						convo.ask('Thanks for inviting me! \n\nBefore I can help you, we need to assign a board to this Space, **reply with a number from the list.** Like this: `Trello 0`\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList, function(response, convo) {
-							if (response.user == 'dev-trello@sparkbot.io') {
-								console.log('=======CONVO SOURCE MESSAGE\n',convo.source_message)
-								console.log('=======heard a bot message')
-								convo.silentRepeat()
-								// convo.next()
-							} else {
-								console.log({response})
-								convo.say('Great, I heard you!')
+						convo.ask('Thanks for inviting me! \n\nBefore I can help you, we need to assign a board to this Space, **reply with a number from the list.** Like this: `Trello 0`\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList, [
+							{
+								pattern: '^[0-9]+$',
+								callback: function(response, convo) {
+								const selection = parseInt(response.text)
+									convo.say('Great, I heard you say: ' + response.text)
+									convo.next()
+								}
+							},
+							{
+								default: true,
+								callback: function(response, convo) {
+									convo.repeat()
+									convo.next()
+								}
 							}
-
-					})
+						])
 
 				})
 			}
