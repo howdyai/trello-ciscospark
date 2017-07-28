@@ -13,6 +13,19 @@ module.exports = function(webserver, controller) {
 
         var bot = controller.spawn({});
 
+		bot.startConversationWithPersonId = function(message, cb) {
+			var personId = message.original_message.actorId
+			controller.api.people.get(personId).then(function(identity) {
+				console.log({identity})
+					bot.startConversation({user: identity.emails[0], channel: message.channel}, cb);
+				}).catch(function(err) {
+					cb(err);
+				});	
+		}
+		bot.startConversationWithActor = function(message, cb) {
+			bot.startConversationWithPersonId(message, cb)
+		}
+
         // Now, pass the webhook into be processed
         controller.handleWebhookPayload(req, res, bot);
 

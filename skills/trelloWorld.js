@@ -79,6 +79,16 @@ module.exports = function(controller) {
 		})
 	})
 
+	controller.hears('^test$', 'direct_message, direct_mention', function(bot, message) {
+		console.log({message})
+		bot.startConversationWithActor(message, function(err, convo) {
+			convo.ask('This is a lil test, how are you?', function(response, convo) {
+				convo.say('You said: ' + response.text)
+				convo.next()
+			})
+		})
+	})
+
 	controller.on('bot_space_join', (bot, message) => {
 		message.trello = {}
 		if (! message.trello.defaultBoard && ! message.trello.defaultList) {
@@ -89,13 +99,31 @@ module.exports = function(controller) {
 				} else {
 					let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
 					boardList = boardList.join('')
-					bot.reply(message, 'Thanks for inviting me! \n\nNow, assign a board to this Space, **reply with a number from the list.**\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList)
-				}
+					console.log({message})
+
+					bot.startConversationWithActor(message, function(err, convo) {
+						
+						convo.ask('Thanks for inviting me! \n\nBefore I can help you, we need to assign a board to this Space, **reply with a number from the list.** Like this: `Trello 0`\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList, function(response, convo) {
+							if (response.user == 'dev-trello@sparkbot.io') {
+								console.log('=======CONVO SOURCE MESSAGE\n',convo.source_message)
+								console.log('=======heard a bot message')
+								convo.silentRepeat()
+								// convo.next()
+							} else {
+								console.log({response})
+								convo.say('Great, I heard you!')
+							}
+
+					})
+
+				})
+			}
 			})
 		}
 	})
 
 	controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
+		console.log('=======MESSAGE IN CATCHALL\n', message)
 		bot.reply(message, 'Catchall, I will persist after you perish. I heard: ' + message.text)
 	})
 }
