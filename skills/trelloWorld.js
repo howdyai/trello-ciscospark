@@ -6,13 +6,13 @@ module.exports = function(controller) {
 
 	// list all user boards
 	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
-		t.get("/1/members/me/boards", { organization: true, fields: 'name,id'}, function(err, data) {
+		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name', organization: true, fields: 'name,id'}, function(err, data) {
 			if (err) {
 				console.log('err:', err)
 			} else {
 				console.log({data})
 				console.log('Data length: ', data.length)
-				console.log(data[0].organization)
+				console.log('lists========\n',data[3].lists)
 				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)// - Belongs to ${el.organization.displayName}`)
 				boardList = boardList.join('')
 				bot.reply(message, "**Pick a Board, respond with its number:**" + boardList)
@@ -62,11 +62,40 @@ module.exports = function(controller) {
 		})
 	})
 
+	controller.hears(['^add (.*)'], 'direct_message, direct_mention', function(bot, message) {
+		t.post('/1/cards/', {
+			name: message.match[1], 
+			idList: bot.trello.defaultList || '584c5cc71c7175671969d78c'
+		}, 
+			function(err, data) {
+				if (err) {
+					console.log('err:', err)
+					bot.reply(message, 'Something has gone wrong')
+				} else {
+					bot.reply(message, `Added "${message.match[1]}" to the list **Backlog** on board [**Howdy/Botkit**](https://trello.com/b/ny6fbxCm/botkit-howdy)`)
+
+				}
+
+		})
+	})
+
+	controller.on('bot_space_join', (bot, message) => {
+		message.trello = {}
+		if (! message.trello.defaultBoard && ! message.trello.defaultList) {
+			
+			t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name', organization: true, fields: 'name,id'}, function(err, data) {
+				if (err) {
+					console.log('err:', err)
+				} else {
+					let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
+					boardList = boardList.join('')
+					bot.reply(message, 'Thanks for inviting me! \n\nNow, assign a board to this Space, **reply with a number from the list.**\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList)
+				}
+			})
+		}
+	})
+
 	controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
-		console.log('catchall message: ',message.text)
-		console.log('message.match', message.match)
-		console.log('message.match[1]:', message.match[1])
-		console.log('message.match[0]: ', message.match[0])
 		bot.reply(message, 'Catchall, I will persist after you perish. I heard: ' + message.text)
 	})
 }
