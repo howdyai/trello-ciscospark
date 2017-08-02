@@ -97,6 +97,7 @@ module.exports = function(controller) {
 			if (err) {
 				console.log('err:', err)
 			} else {
+				const boardArray = data
 				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
 				boardList = boardList.join('')
 				console.log(message.original_message.data)
@@ -110,17 +111,42 @@ module.exports = function(controller) {
 				} else {
 					bot.startConversation(message, function(err, convo) {
 
-						convo.ask('To start using Trello here, assign a board to this Space, **reply with a number from the list.**\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList, function(res, convo) {
-							if (res.text.match(/^[\d]+$/) && boardList[res.text]) {
-								const board = boardList[res.text]
-								// set the channel board default, what about list default?
-								console.log({board})
-								convo.say('Landed one!')
-								convo.next()
-							} else {
-								convo.silentRepeat()
+						convo.ask('To start using Trello here, assign a board to this Space, **reply with a number from the list.**\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList, [
+							{
+								pattern: /^[\d]+$/,
+								callback: function(res, convo) {
+									if (boardArray[res.text]) {
+										console.log({boardList})
+									const board = boardArray[res.text]
+									// set the channel board default, what about list default?
+									console.log({board})
+									convo.say('Landed one!')
+										controller.storage.channels.save({
+											id: message.channel,
+											defaultBoard: board.id,
+											defaultList: board.lists[0]
+										}, function (err, res) {
+											if (err) console.log({err})
+										})
+								} else {
+									convo.say("Didn't understand that, please respond with just a number")
+								}
+									convo.next()
+
+								}
 							}
-					})
+						])
+						// function(res, convo) {
+						// 	if (res.text.match(/^[\d]+$/) && boardList[res.text]) {
+						// 		const board = boardList[res.text]
+						// 		// set the channel board default, what about list default?
+						// 		console.log({board})
+						// 		convo.say('Landed one!')
+						// 		convo.next()
+						// 	} else {
+						// 		convo.silentRepeat()
+						// 	}
+					
 
 					convo.next()
 					})
