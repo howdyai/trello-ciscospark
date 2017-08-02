@@ -86,9 +86,6 @@ module.exports = function(controller) {
 
 	controller.on('bot_space_join', (bot, message) => {
 		message.trello = {}
-		// this check will need to happen in a middleware before all receiveMessage events
-		// which I don't think this would trigger anyways, so we need to have a check here too probably
-		// or at least want the opportunity to have a different message in this particular context
 		if (! message.trello.defaultBoard && ! message.trello.defaultList) {
 			bot.reply(message, 'Thanks for inviting me!')
 			controller.trigger('selectBoard', [bot, message])
