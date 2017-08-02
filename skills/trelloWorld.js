@@ -79,23 +79,54 @@ module.exports = function(controller) {
 		})
 	})
 
-	controller.on('bot_space_join', (bot, message) => {
-		message.trello = {}
-		if (! message.trello.defaultBoard && ! message.trello.defaultList) {
-			
-			t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name', organization: true, fields: 'name,id'}, function(err, data) {
-				if (err) {
-					console.log('err:', err)
-				} else {
-					let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
-					boardList = boardList.join('')
-					bot.reply(message, 'Thanks for inviting me! \n\nNow, assign a board to this Space, **reply with a number from the list.**\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList)
-				}
-			})
-		}
-	})
 
 	controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
 		bot.reply(message, 'Catchall, I will persist after you perish. I heard: ' + message.text)
+	})
+
+	controller.on('bot_space_join', (bot, message) => {
+		message.trello = {}
+		if (! message.trello.defaultBoard && ! message.trello.defaultList) {
+			bot.reply(message, 'Thanks for inviting me!')
+			controller.trigger('selectBoard', [bot, message])
+		}
+	})
+
+	controller.on('selectBoard', function(bot, message) {
+		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name', organization: true, fields: 'name,id'}, function(err, data) {
+			if (err) {
+				console.log('err:', err)
+			} else {
+				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
+				boardList = boardList.join('')
+				console.log(message.original_message.data)
+				if (message.user === controller.identity.emails[0]) {
+					// space joins will have bot identity as user, this works around that
+					controller.api.people.get(message.original_message.actorId).then(function(identity) {
+						console.log({identity})
+						message.user = identity.emails[0]
+						controller.trigger('selectBoard', [bot, message])
+					})
+				} else {
+					bot.startConversation(message, function(err, convo) {
+
+						convo.ask('To start using Trello here, assign a board to this Space, **reply with a number from the list.**\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList, function(res, convo) {
+							if (res.text.match(/^[\d]+$/) && boardList[res.text]) {
+								const board = boardList[res.text]
+								// set the channel board default, what about list default?
+								console.log({board})
+								convo.say('Landed one!')
+								convo.next()
+							} else {
+								convo.silentRepeat()
+							}
+					})
+
+					convo.next()
+					})
+
+				}
+			}
+		})
 	})
 }
