@@ -111,6 +111,20 @@ module.exports = function(controller) {
 		})
 	})
 
+	controller.on('bot_space_leave', (bot, message) => {
+		controller.storage.channels.get(message.channel, (err, channel) => {
+			if (channel && channel.webhook) {
+				t.del(`/1/webhooks/${channel.webhook.id}`, function(err, data) {
+					if (err) console.log('Error deleting webhook')
+					else console.log({data})
+				})
+				controller.storage.channels.delete(message.channel, function(err, res) {
+					if (err) console.log('err deleting channel record', err)
+				})
+			} else console.log('==== No Channel record found')
+		})
+	})
+
 	controller.on('selectBoard', function(bot, message) {
 		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, function(err, data) {
 			if (err) {
