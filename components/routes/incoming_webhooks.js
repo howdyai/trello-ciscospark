@@ -13,16 +13,41 @@ module.exports = function(webserver, controller) {
 
         var bot = controller.spawn({});
 
-        // Now, pass the webhook into be processed
+        // Now, pass the webhook in to be processed
         controller.handleWebhookPayload(req, res, bot);
 
     });
 
 	webserver.post('/trello/receive', function(req, res) {
-		console.log('======req body trello webhook:\n', req.body)
+		if (req.query) {
+			console.log('====QS PASSED FROM TRELLO\n',req.query)
+		}
 		res.status(200).send()
+
+		var bot = controller.spawn({})
+		// I need to get the channel to push this alert into
+		const payload = req.body
+		const action = payload.action
+		console.log(action.display)
+		const channel = {channel: req.query.channel}
+
+		if (action.type === 'createCard') {
+
+			bot.reply(channel, 'Someone created a card!')
+		}
+		if (action.type === 'commentCard') {
+
+			bot.reply(channel, 'Someone commented on a card!')
+		}
+		if (action.type === 'updateCard') {
+			if (action.display.translationKey === 'action_move_card_from_list_to_list') {
+				bot.reply(channel, 'Someone moved a card!')
+			}
+
+		}
+
 	})
-	// respond with 200
+	// respond with 200 when setting up trello webhook
 	webserver.head('/trello/receive', function(req, res) {
 		res.sendStatus(200)
 	})

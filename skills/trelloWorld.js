@@ -161,7 +161,7 @@ module.exports = function(controller) {
 										// if webhook exists for this channel, update it
 										if (message.trelloChannel && message.trelloChannel.webhook) {
 											console.log('====Updating trello webhook')
-											t.put('1/webhooks/' + message.trelloChannel.webhook.id, { idModel: board.id, callbackURL: process.env.public_address + '/trello/receive' }, function(err, data) {
+											t.put('1/webhooks/' + message.trelloChannel.webhook.id, { idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}` }, function(err, data) {
 												if (err) {
 													console.log('Error updating webhook: ', err)
 												} else {
@@ -172,7 +172,7 @@ module.exports = function(controller) {
 										} else {
 											// if no webhook exists for this channel, create one
 											console.log(process.env.public_address)
-											t.post('1/webhooks', {idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive`}, function(err, data) {
+											t.post('1/webhooks', {idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}`}, function(err, data) {
 												if (err) {
 													console.log('Error setting up webhook: ', err)
 												} else {
