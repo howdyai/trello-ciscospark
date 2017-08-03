@@ -18,4 +18,12 @@ module.exports = function(webserver, controller) {
 
     });
 
+	webserver.post('/trello/receive', function(req, res) {
+		console.log('======req body trello webhook:\n', req.body)
+		res.status(200).send()
+	})
+	// respond with 200
+	webserver.head('/trello/receive', function(req, res) {
+		res.sendStatus(200)
+	})
 }

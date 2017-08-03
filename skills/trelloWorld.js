@@ -6,7 +6,10 @@ module.exports = function(controller) {
 
 	// list all user boards
 	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
-		controller.trigger('selectBoard', [bot, message])
+		controller.storage.channels.get(message.channel, function(err, channel) {
+			message.trelloChannel = channel
+			controller.trigger('selectBoard', [bot, message])
+		})
 	})
 	
 	// list all user orgs
@@ -139,14 +142,39 @@ module.exports = function(controller) {
 										console.log({message})
 										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
 										convo.next()
-										controller.storage.channels.save({
-											id: message.channel,
-											board: board,
-											list: board.lists[0]
-										}, function (err, res) {
-											if (err) console.log({err})
-											console.log(board.lists[0])
-										})
+										
+										// create/update webhook for channel
+										// if webhook exists for this channel, update it
+										if (message.trelloChannel && message.trelloChannel.webhook) {
+											console.log('====Updating trello webhook')
+											t.put('1/webhooks/' + message.trelloChannel.webhook.id, { idModel: board.id, callbackURL: process.env.public_address + '/trello/receive' }, function(err, data) {
+												if (err) {
+													console.log('Error updating webhook: ', err)
+												} else {
+													console.log({data})
+												}
+											})
+
+										} else {
+											// if no webhook exists for this channel, create one
+											console.log(process.env.public_address)
+											t.post('1/webhooks', {idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive`}, function(err, data) {
+												if (err) {
+													console.log('Error setting up webhook: ', err)
+												} else {
+													controller.storage.channels.save({
+														id: message.channel,
+														board: board,
+														list: board.lists[0],
+														webhook: data
+													}, function (err, res) {
+														if (err) console.log({err})
+														console.log('====Created new webhook successfully:\n', data)
+													})
+												}
+											})
+										}
+
 									} else {
 										// silentRepeat was ending my convo before
 										convo.repeat()
