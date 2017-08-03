@@ -32,17 +32,16 @@ module.exports = function(webserver, controller) {
 		const action = payload.action
 		const channel = {channel: req.query.channel}
 
+			console.log(action.data)
 		if (action.type === 'createCard') {
-			console.log(action.display)
-			console.log(action.data.card)
 
-			bot.reply(channel, `${action.memberCreator.fullName} created card *"[**${action.display.entities.card.text}**](http://www.trello.com/c/${action.display.entities.card.shortLink})"*  in list **${action.data.list.name}** on board [**${action.data.board.name}**](${action.data.board.url})`)
+			bot.reply(channel, `${action.memberCreator.fullName} created card *"[**${action.data.card.name}**](http://www.trello.com/c/${action.data.card.shortLink})"*  in list **${action.data.list.name}** on board [**${action.data.board.name}**](${action.data.board.url})`)
 
 		}
 		if (action.type === 'commentCard') {
-			console.log(action.display)
+			// console.log(action.display.entities)
 
-			bot.reply(channel, 'Someone commented on a card!')
+			bot.reply(channel, `${action.memberCreator.fullName} commented *"${action.data.text}"* on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink}) on board ${action.data.board.name}`)
 		}
 		if (action.type === 'updateCard') {
 			if (action.display.translationKey === 'action_move_card_from_list_to_list') {
