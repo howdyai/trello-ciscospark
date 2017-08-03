@@ -1,4 +1,6 @@
 var debug = require('debug')('botkit:incoming_webhooks');
+const Trello = require('node-trello')
+const t = new Trello(process.env.T_KEY, process.env.T_TOKEN)
 
 module.exports = function(webserver, controller) {
 
@@ -33,8 +35,14 @@ module.exports = function(webserver, controller) {
 		const channel = {channel: req.query.channel}
 
 		if (action.type === 'createCard') {
+			t.get(`/1/cards/${action.data.card.id}`, {fields: 'name,url'}, function(err, card) {
+				if (err) {
+					console.log({err})
+				}
 
-			bot.reply(channel, `${action.memberCreator.fullName} created card in list **${action.data.list.name}** on board ${action.data.board.name}`)
+			bot.reply(channel, `${action.memberCreator.fullName} created card *"[**${card.name}**](${card.url})"*  in list **${action.data.list.name}** on board [**${action.data.board.name}**](${action.data.board.url})`)
+			})
+
 		}
 		if (action.type === 'commentCard') {
 
