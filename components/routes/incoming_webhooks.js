@@ -19,21 +19,22 @@ module.exports = function(webserver, controller) {
     });
 
 	webserver.post('/trello/receive', function(req, res) {
+		//@TODO put this into its own function
 		if (req.query) {
 			console.log('====QS PASSED FROM TRELLO\n',req.query)
 		}
 		res.status(200).send()
+		console.log(req.body)
 
 		var bot = controller.spawn({})
 		// I need to get the channel to push this alert into
 		const payload = req.body
 		const action = payload.action
-		console.log(action.display)
 		const channel = {channel: req.query.channel}
 
 		if (action.type === 'createCard') {
 
-			bot.reply(channel, 'Someone created a card!')
+			bot.reply(channel, `${action.memberCreator.fullName} created card in list **${action.data.list.name}** on board ${action.data.board.name}`)
 		}
 		if (action.type === 'commentCard') {
 
