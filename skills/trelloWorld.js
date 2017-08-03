@@ -6,18 +6,7 @@ module.exports = function(controller) {
 
 	// list all user boards
 	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
-		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name', organization: true, fields: 'name,id'}, function(err, data) {
-			if (err) {
-				console.log('err:', err)
-			} else {
-				console.log({data})
-				console.log('Data length: ', data.length)
-				console.log('lists========\n',data[3].lists)
-				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)// - Belongs to ${el.organization.displayName}`)
-				boardList = boardList.join('')
-				bot.reply(message, "**Pick a Board, respond with its number:**" + boardList)
-			}
-		})
+		controller.trigger('selectBoard', [bot, message])
 	})
 	
 	// list all user orgs
@@ -63,19 +52,31 @@ module.exports = function(controller) {
 	})
 
 	controller.hears(['^add (.*)'], 'direct_message, direct_mention', function(bot, message) {
-		t.post('/1/cards/', {
-			name: message.match[1], 
-			idList: bot.trello.defaultList || '584c5cc71c7175671969d78c'
-		}, 
-			function(err, data) {
-				if (err) {
-					console.log('err:', err)
-					bot.reply(message, 'Something has gone wrong')
-				} else {
-					bot.reply(message, `Added "${message.match[1]}" to the list **Backlog** on board [**Howdy/Botkit**](https://trello.com/b/ny6fbxCm/botkit-howdy)`)
+		console.log({message})
+		console.log(message.channel)
+		controller.storage.channels.get(message.channel, function(err, channel) {
+			if (err) {
+				console.log({err})
+				bot.reply(message, "Something went wrong, friends! Please try again...")
+				return 
+			}
+			if (channel && channel.list && channel.list.id) {
 
-				}
+				t.post('/1/cards/', {
+					name: message.match[1], 
+					idList: channel.list.id
+				}, 
+					function(err, data) {
+						if (err) {
+							console.log('err:', err)
+							bot.reply(message, 'Something has gone wrong')
+						} else {
+							bot.reply(message, `Added "${message.match[1]}" to the list **${channel.list.name}** on board [**${channel.board.name}**](${channel.board.url})`)
 
+						}
+
+				})
+			}
 		})
 	})
 
@@ -93,7 +94,7 @@ module.exports = function(controller) {
 	})
 
 	controller.on('selectBoard', function(bot, message) {
-		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name', organization: true, fields: 'name,id'}, function(err, data) {
+		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, function(err, data) {
 			if (err) {
 				console.log('err:', err)
 			} else {
@@ -120,19 +121,20 @@ module.exports = function(controller) {
 									const board = boardArray[res.text]
 									// set the channel board default, what about list default?
 									console.log({board})
-									convo.say('Landed one!')
+										console.log({message})
+										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
 										controller.storage.channels.save({
 											id: message.channel,
-											defaultBoard: board.id,
-											defaultList: board.lists[0]
+											board: board,
+											list: board.lists[0]
 										}, function (err, res) {
 											if (err) console.log({err})
+											console.log(board.lists[0])
 										})
-								} else {
-									convo.say("Didn't understand that, please respond with just a number")
-								}
+									} else {
+										convo.say("Didn't understand that, please respond with just a number")
+									}
 									convo.next()
-
 								}
 							}
 						])

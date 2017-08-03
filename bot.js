@@ -48,6 +48,7 @@ var controller = Botkit.sparkbot({
     secret: process.env.secret, // this is an RECOMMENDED but optional setting that enables validation of incoming webhooks
     webhook_name: 'Cisco Spark bot created with Botkit, override me before going to production',
     studio_command_uri: process.env.studio_command_uri,
+	json_file_store: './.data'
 });
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
