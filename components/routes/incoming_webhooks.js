@@ -19,33 +19,29 @@ module.exports = function(webserver, controller) {
     });
 
 	webserver.post('/trello/receive', function(req, res) {
-		//@TODO put this into its own function
-		if (req.query) {
-			console.log('====QS PASSED FROM TRELLO\n',req.query)
-		}
 		res.status(200).send()
-		console.log(req.body)
 
 		var bot = controller.spawn({})
-		// I need to get the channel to push this alert into
+
+		//@TODO put this into its own function
 		const payload = req.body
 		const action = payload.action
 		const channel = {channel: req.query.channel}
 
-			console.log(action.data)
 		if (action.type === 'createCard') {
 
 			bot.reply(channel, `${action.memberCreator.fullName} created card *"[**${action.data.card.name}**](http://www.trello.com/c/${action.data.card.shortLink})"*  in list **${action.data.list.name}** on board [**${action.data.board.name}**](${action.data.board.url})`)
 
 		}
 		if (action.type === 'commentCard') {
-			// console.log(action.display.entities)
 
 			bot.reply(channel, `${action.memberCreator.fullName} commented *"${action.data.text}"* on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink}) on board ${action.data.board.name}`)
 		}
 		if (action.type === 'updateCard') {
 			if (action.display.translationKey === 'action_move_card_from_list_to_list') {
-				bot.reply(channel, 'Someone moved a card!')
+				
+				bot.reply(channel, `${action.memberCreator.fullName} moved card [*"${action.data.card.name}*"](http://www.trello.com/c/${action.data.card.shortLink}) from ${action.data.listBefore.name} to ${action.data.listAfter.name} on board **${action.data.board.name}**`)
+
 			}
 
 		}
