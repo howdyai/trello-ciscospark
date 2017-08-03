@@ -86,11 +86,13 @@ module.exports = function(controller) {
 	})
 
 	controller.on('bot_space_join', (bot, message) => {
-		message.trello = {}
-		if (! message.trello.defaultBoard && ! message.trello.defaultList) {
-			bot.reply(message, 'Thanks for inviting me!')
+		controller.storage.channels.get(message.channel, function(err, channel) {
+
+		if (! channel || ! channel.list) {
+			bot.reply(message, 'Thanks for inviting me! To start using Trello here, assign a board to this Space')
 			controller.trigger('selectBoard', [bot, message])
 		}
+		})
 	})
 
 	controller.on('selectBoard', function(bot, message) {
@@ -112,7 +114,7 @@ module.exports = function(controller) {
 				} else {
 					bot.startConversation(message, function(err, convo) {
 
-						convo.ask('To start using Trello here, assign a board to this Space, **reply with a number from the list.**\n\n*Hint: I can only hear you if you start your message with*  `Trello`\n\n' + boardList, [
+						convo.ask(`**Reply with a number from the list to set the default board for this Space.**\n\n*Hint: I can only hear you if you start your message with*  \`Trello\`\n\n${boardList}`, [
 							{
 								pattern: /^[\d]+$/,
 								callback: function(res, convo) {
