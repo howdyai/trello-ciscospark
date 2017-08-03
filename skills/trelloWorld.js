@@ -27,27 +27,40 @@ module.exports = function(controller) {
 	
 	// search cards
 	controller.hears(['^search(.*)?$'], 'direct_message,direct_mention', function(bot, message) {
-		const query = message.match[1].trim()
-		console.log({query})
+		controller.storage.channels.get(message.channel, function(err, channel) {
+			if (err) {
+				console.log({err})
+			}
+			if (err || ! channel || ! channel.board) {
+				controller.trigger('selectBoard', [bot, message])
+			} else {
+				console.log({channel})
 
-		t.get('1/search', {
-			query: query,
-			modelTypes: 'cards',
-			card_fields: 'name,desc,due,subscribed',
-			cardList: true,
-			partial: true
-		},
-			(err, data) => {
-		if (err) {
-			console.log('err:', err)
-			bot.reply(message, 'Something has gone wrong')
-		} else {
-			console.log({data})
-			console.log(data.cards[0])
-			let searchResults = data.cards.map((el, i) => `\n\n**${i}:** ${el.name}\n\n${el.desc}`)
-					.join('')
-			bot.reply(message, "**Search Results:**" + searchResults)
-		}
+				const query = message.match[1].trim()
+				console.log({query})
+
+				t.get('1/search', {
+					query: query,
+					modelTypes: 'cards',
+					idBoards: channel.board.id,
+					card_fields: 'name,desc,due,subscribed',
+					cardList: true,
+					partial: true
+				},
+					(err, data) => {
+				if (err) {
+					console.log('err:', err)
+					bot.reply(message, 'Something has gone wrong')
+				} else {
+					console.log({data})
+					console.log(data.cards[0])
+					let searchResults = data.cards.map((el, i) => `\n\n**${i}:** ${el.name}\n\n${el.desc}`)
+							.join('')
+					bot.reply(message, data.cards.length ? `**Search Results from [**${channel.board.name}**](${channel.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${channel.board.name}**](${channel.board.url})`)
+				}
+				})
+			}
+
 		})
 	})
 
@@ -125,6 +138,7 @@ module.exports = function(controller) {
 									console.log({board})
 										console.log({message})
 										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
+										convo.next()
 										controller.storage.channels.save({
 											id: message.channel,
 											board: board,
@@ -134,8 +148,16 @@ module.exports = function(controller) {
 											console.log(board.lists[0])
 										})
 									} else {
-										convo.say("Didn't understand that, please respond with just a number")
+										// silentRepeat was ending my convo before
+										convo.repeat()
+										convo.next()
 									}
+								}
+							},
+							{
+								default: true,
+								callback: function(res, convo) {
+									convo.repeat()
 									convo.next()
 								}
 							}
