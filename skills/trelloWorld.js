@@ -6,18 +6,7 @@ module.exports = function(controller) {
 
 	// list all user boards
 	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
-		t.get("/1/members/me/boards", { organization: true, fields: 'name,id'}, function(err, data) {
-			if (err) {
-				console.log('err:', err)
-			} else {
-				console.log({data})
-				console.log('Data length: ', data.length)
-				console.log(data[0].organization)
-				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)// - Belongs to ${el.organization.displayName}`)
-				boardList = boardList.join('')
-				bot.reply(message, "**Pick a Board, respond with its number:**" + boardList)
-			}
-		})
+		controller.trigger('selectBoard', [bot, message])
 	})
 	
 	// list all user orgs
@@ -62,11 +51,112 @@ module.exports = function(controller) {
 		})
 	})
 
+	controller.hears(['^add (.*)'], 'direct_message, direct_mention', function(bot, message) {
+		console.log({message})
+		console.log(message.channel)
+		controller.storage.channels.get(message.channel, function(err, channel) {
+			if (err) {
+				console.log({err})
+				bot.reply(message, "Something went wrong, friends! Please try again...")
+				return 
+			}
+			if (channel && channel.list && channel.list.id) {
+
+				t.post('/1/cards/', {
+					name: message.match[1], 
+					idList: channel.list.id
+				}, 
+					function(err, data) {
+						if (err) {
+							console.log('err:', err)
+							bot.reply(message, 'Something has gone wrong')
+						} else {
+							bot.reply(message, `Added "${message.match[1]}" to the list **${channel.list.name}** on board [**${channel.board.name}**](${channel.board.url})`)
+
+						}
+
+				})
+			}
+		})
+	})
+
+
 	controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
-		console.log('catchall message: ',message.text)
-		console.log('message.match', message.match)
-		console.log('message.match[1]:', message.match[1])
-		console.log('message.match[0]: ', message.match[0])
 		bot.reply(message, 'Catchall, I will persist after you perish. I heard: ' + message.text)
+	})
+
+	controller.on('bot_space_join', (bot, message) => {
+		controller.storage.channels.get(message.channel, function(err, channel) {
+
+		if (! channel || ! channel.list) {
+			bot.reply(message, 'Thanks for inviting me! To start using Trello here, assign a board to this Space')
+			controller.trigger('selectBoard', [bot, message])
+		}
+		})
+	})
+
+	controller.on('selectBoard', function(bot, message) {
+		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, function(err, data) {
+			if (err) {
+				console.log('err:', err)
+			} else {
+				const boardArray = data
+				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
+				boardList = boardList.join('')
+				console.log(message.original_message.data)
+				if (message.user === controller.identity.emails[0]) {
+					// space joins will have bot identity as user, this works around that
+					controller.api.people.get(message.original_message.actorId).then(function(identity) {
+						console.log({identity})
+						message.user = identity.emails[0]
+						controller.trigger('selectBoard', [bot, message])
+					})
+				} else {
+					bot.startConversation(message, function(err, convo) {
+
+						convo.ask(`**Reply with a number from the list to set the default board for this Space.**\n\n*Hint: I can only hear you if you start your message with*  \`Trello\`\n\n${boardList}`, [
+							{
+								pattern: /^[\d]+$/,
+								callback: function(res, convo) {
+									if (boardArray[res.text]) {
+										console.log({boardList})
+									const board = boardArray[res.text]
+									// set the channel board default, what about list default?
+									console.log({board})
+										console.log({message})
+										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
+										controller.storage.channels.save({
+											id: message.channel,
+											board: board,
+											list: board.lists[0]
+										}, function (err, res) {
+											if (err) console.log({err})
+											console.log(board.lists[0])
+										})
+									} else {
+										convo.say("Didn't understand that, please respond with just a number")
+									}
+									convo.next()
+								}
+							}
+						])
+						// function(res, convo) {
+						// 	if (res.text.match(/^[\d]+$/) && boardList[res.text]) {
+						// 		const board = boardList[res.text]
+						// 		// set the channel board default, what about list default?
+						// 		console.log({board})
+						// 		convo.say('Landed one!')
+						// 		convo.next()
+						// 	} else {
+						// 		convo.silentRepeat()
+						// 	}
+					
+
+					convo.next()
+					})
+
+				}
+			}
+		})
 	})
 }
