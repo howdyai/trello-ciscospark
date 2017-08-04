@@ -6,7 +6,10 @@ module.exports = function(controller) {
 
 	// list all user boards
 	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
-		controller.trigger('selectBoard', [bot, message])
+		controller.storage.channels.get(message.channel, function(err, channel) {
+			message.trelloChannel = channel
+			controller.trigger('selectBoard', [bot, message])
+		})
 	})
 	
 	// list all user orgs
@@ -108,6 +111,20 @@ module.exports = function(controller) {
 		})
 	})
 
+	controller.on('bot_space_leave', (bot, message) => {
+		controller.storage.channels.get(message.channel, (err, channel) => {
+			if (channel && channel.webhook) {
+				t.del(`/1/webhooks/${channel.webhook.id}`, function(err, data) {
+					if (err) console.log('Error deleting webhook')
+					else console.log({data})
+				})
+				controller.storage.channels.delete(message.channel, function(err, res) {
+					if (err) console.log('err deleting channel record', err)
+				})
+			} else console.log('==== No Channel record found')
+		})
+	})
+
 	controller.on('selectBoard', function(bot, message) {
 		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, function(err, data) {
 			if (err) {
@@ -139,14 +156,39 @@ module.exports = function(controller) {
 										console.log({message})
 										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
 										convo.next()
-										controller.storage.channels.save({
-											id: message.channel,
-											board: board,
-											list: board.lists[0]
-										}, function (err, res) {
-											if (err) console.log({err})
-											console.log(board.lists[0])
-										})
+										
+										// create/update webhook for channel
+										// if webhook exists for this channel, update it
+										if (message.trelloChannel && message.trelloChannel.webhook) {
+											console.log('====Updating trello webhook')
+											t.put('1/webhooks/' + message.trelloChannel.webhook.id, { idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}` }, function(err, data) {
+												if (err) {
+													console.log('Error updating webhook: ', err)
+												} else {
+													console.log({data})
+												}
+											})
+
+										} else {
+											// if no webhook exists for this channel, create one
+											console.log(process.env.public_address)
+											t.post('1/webhooks', {idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}`}, function(err, data) {
+												if (err) {
+													console.log('Error setting up webhook: ', err)
+												} else {
+													controller.storage.channels.save({
+														id: message.channel,
+														board: board,
+														list: board.lists[0],
+														webhook: data
+													}, function (err, res) {
+														if (err) console.log({err})
+														console.log('====Created new webhook successfully:\n', data)
+													})
+												}
+											})
+										}
+
 									} else {
 										// silentRepeat was ending my convo before
 										convo.repeat()
