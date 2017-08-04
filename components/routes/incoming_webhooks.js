@@ -50,6 +50,14 @@ module.exports = function(webserver, controller) {
 			}
 
 		}
+		if (action.type === 'updateCheckItemStateOnCard') {
+			if (action.display.translationKey === 'action_completed_checkitem') {
+				bot.reply(channel, `${action.memberCreator.fullName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Completed: "${action.data.checkItem.name}"***`)
+			}
+			if (action.display.translationKey === 'action_marked_checkitem_incomplete') {
+				bot.reply(channel, `${action.memberCreator.fullName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Incomplete: "${action.data.checkItem.name}"***`)
+			}
+		}
 
 	})
 	// respond with 200 when setting up trello webhook
