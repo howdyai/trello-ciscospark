@@ -67,11 +67,30 @@ module.exports = function(controller) {
 								callback: function(res, convo) {
 									if (data.cards[res.match[1]]) {
 										const destinations = channel.board.lists.reduce((a, b, i) => a.concat(`\n\n**${i}:** ${b.name}`), '')//
+										convo.setVar('card', data.cards[res.match[1]])
 										console.log({destinations})
-										convo.say(`Where would you like to move it?\n\n${destinations}`)
+										convo.ask(`Where would you like to move it?\n\n${destinations}`, [
+											{
+												pattern: /^[\d]+$/,
+												callback: (res, convo) => {
+													if (channel.board.lists[res.text]) {
+														convo.say(`Moving *"{{vars.card.name}}"* to **${channel.board.lists[res.text].name}**`)
+														convo.next()
+													} else {
+														convo.repeat()
+													}
+													
+												}
+											}, {
+												default: true,
+												callback: (res, convo) => {
+													convo.say('Please select a list, or say \`cancel\`')
+													// convo.silentRepeat()
+													convo.repeat()
+												}
+											}
+										])
 										console.log('=======CHANNEL BOARD:\n', channel.board)
-										// convo.gotToThread('chooseList')
-										//`${data.cards[res.match[1]].name}`
 										convo.next()
 									}
 								}
