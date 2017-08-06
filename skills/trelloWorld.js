@@ -74,8 +74,12 @@ module.exports = function(controller) {
 												pattern: /^[\d]+$/,
 												callback: (res, convo) => {
 													if (channel.board.lists[res.text]) {
-														convo.say(`Moving *"{{vars.card.name}}"* to **${channel.board.lists[res.text].name}**`)
-														convo.next()
+														t.put(`1/cards/${convo.vars.card.id}`, {idList: channel.board.lists[res.text].id}, function(err, data) {
+															if (err) {
+																console.log({err})
+															} 													
+														})
+														convo.stop()
 													} else {
 														convo.repeat()
 													}
@@ -90,16 +94,17 @@ module.exports = function(controller) {
 												}
 											}
 										])
-										console.log('=======CHANNEL BOARD:\n', channel.board)
 										convo.next()
 									}
 								}
 							},
+							// this is a hack, but allows having an open ended convo, and nesting commands
+							// if no chainable commands heard after search, bail from the convo and run the text through hears
 							{
 								default: true,
 								callback: function(res, convo) {
-									convo.say(`You said ${res.text}`)
-									convo.next()
+									convo.stop()
+									controller.receiveMessage(bot, res)
 								}
 							}
 						])
