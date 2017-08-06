@@ -47,7 +47,7 @@ module.exports = function(controller) {
 					modelTypes: 'cards',
 					idBoards: channel.board.id,
 					card_fields: 'name,desc,due,subscribed',
-					cardList: true,
+					card_list: true,
 					partial: true
 				},
 					(err, data) => {
@@ -57,9 +57,35 @@ module.exports = function(controller) {
 				} else {
 					console.log({data})
 					console.log(data.cards[0])
-					let searchResults = data.cards.map((el, i) => `\n\n**${i}:** ${el.name}\n\n${el.desc}`)
+					let searchResults = data.cards.map((el, i) => `\n\n**${i}:** "${el.name}" in *${el.list.name}*`)
 							.join('')
-					bot.reply(message, data.cards.length ? `**Search Results from [**${channel.board.name}**](${channel.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${channel.board.name}**](${channel.board.url})`)
+					bot.startConversation(message, function(err, convo) {
+
+						convo.ask(data.cards.length ? `**Search Results from [**${channel.board.name}**](${channel.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${channel.board.name}**](${channel.board.url})`, [
+							{
+								pattern: /^move ([\d]+)$/,
+								callback: function(res, convo) {
+									if (data.cards[res.match[1]]) {
+										const destinations = channel.board.lists.reduce((a, b, i) => a.concat(`\n\n**${i}:** ${b.name}`), '')//
+										console.log({destinations})
+										convo.say(`Where would you like to move it?\n\n${destinations}`)
+										console.log('=======CHANNEL BOARD:\n', channel.board)
+										// convo.gotToThread('chooseList')
+										//`${data.cards[res.match[1]].name}`
+										convo.next()
+									}
+								}
+							},
+							{
+								default: true,
+								callback: function(res, convo) {
+									convo.say(`You said ${res.text}`)
+									convo.next()
+								}
+							}
+						])
+						// convo.next()
+					})
 				}
 				})
 			}
@@ -133,7 +159,6 @@ module.exports = function(controller) {
 				const boardArray = data
 				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
 				boardList = boardList.join('')
-				console.log(message.original_message.data)
 				if (message.user === controller.identity.emails[0]) {
 					// space joins will have bot identity as user, this works around that
 					controller.api.people.get(message.original_message.actorId).then(function(identity) {
