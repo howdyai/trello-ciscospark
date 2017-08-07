@@ -1,5 +1,9 @@
 module.exports = function(controller) {
 
+	controller.hears('^help$', 'direct_message, direct_mention', function(bot, message) {
+		bot.reply(message, "I can help you get things done with Trello! Currently, my commands are:\n\n\n\n`boards`: Show the boards your organization has access to, select one from the list to set the default board for the channel \n\n`search <query>`: Show cards that partially match your query, you can use the move command afterwards to move any of the cards to new lists \n\n`move`: Find a card to move to a new list")
+	})
+
 
     // This before middleware allows the help command to accept sub-thread names as a parameter
     // so users can say help to get the default thread, but help <subthread> will automatically
