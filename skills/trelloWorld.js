@@ -137,7 +137,7 @@ module.exports = function(controller) {
 							console.log('err:', err)
 							bot.reply(message, 'Something has gone wrong')
 						} else {
-							bot.reply(message, `Added "${message.match[1]}" to the list **${channel.list.name}** on board [**${channel.board.name}**](${channel.board.url})`)
+							// bot.reply(message, `Added "${message.match[1]}" to the list **${channel.list.name}** on board [**${channel.board.name}**](${channel.board.url})`)
 
 						}
 
