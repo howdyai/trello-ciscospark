@@ -6,11 +6,7 @@ module.exports = function(controller) {
 
 	// list all user boards
 	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
-		controller.storage.channels.get(message.channel, function(err, channel) {
-			console.log('=======BOARDS COMMAND CHANNEL RECORD:\n', channel)
-			message.trelloChannel = channel
-			controller.trigger('selectBoard', [bot, message])
-		})
+		controller.trigger('selectBoard', [bot, message])
 	})
 	
 	// list all user orgs
@@ -31,22 +27,13 @@ module.exports = function(controller) {
 	
 	// search cards
 	controller.hears(['^search(.*)?$'], 'direct_message,direct_mention', function(bot, message) {
-		controller.storage.channels.get(message.channel, function(err, channel) {
-			if (err) {
-				console.log({err})
-			}
-			if (err || ! channel || ! channel.board) {
-				controller.trigger('selectBoard', [bot, message])
-			} else {
-				console.log({channel})
-
 				const query = message.match[1].trim()
 				console.log({query})
 
 				t.get('1/search', {
 					query: query,
 					modelTypes: 'cards',
-					idBoards: channel.board.id,
+					idBoards: message.trelloChannel.board.id,
 					card_fields: 'name,desc,due,subscribed',
 					card_list: true,
 					partial: true
@@ -62,7 +49,7 @@ module.exports = function(controller) {
 							.join('')
 					bot.startConversation(message, function(err, convo) {
 
-						convo.ask(data.cards.length ? `**Search Results from [**${channel.board.name}**](${channel.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${channel.board.name}**](${channel.board.url})`, [
+						convo.ask(data.cards.length ? `**Search Results from [**${message.trelloChannel.board.name}**](${message.trelloChannel.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${message.trelloChannel.board.name}**](${message.trelloChannel.board.url})`, [
 							{
 								pattern: /^move ([\d]+)$/,
 								callback: function(res, convo) {
@@ -78,7 +65,7 @@ module.exports = function(controller) {
 														t.put(`1/cards/${convo.vars.card.id}`, {idList: channel.board.lists[res.text].id}, function(err, data) {
 															if (err) {
 																console.log({err})
-															} 													
+															}													
 														})
 														convo.stop()
 													} else {
@@ -113,24 +100,13 @@ module.exports = function(controller) {
 					})
 				}
 				})
-			}
 
-		})
 	})
 
 	controller.hears(['^add (.*)'], 'direct_message, direct_mention', function(bot, message) {
 		console.log({message})
 		console.log(message.channel)
-		controller.storage.channels.get(message.channel, function(err, channel) {
-			if (err) {
-				console.log({err})
-				bot.reply(message, "Something went wrong, friends! Please try again...")
-				return 
-			}
-			console.log({channel})
-			if (channel && channel.list && channel.list.id) {
-				console.log('in add card makin a card!')
-
+			if (message.trelloChannel&& message.trelloChannel.list && message.trelloChannel.list.id) {
 				t.post('/1/cards/', {
 					name: message.match[1], 
 					idList: channel.list.id
@@ -141,13 +117,11 @@ module.exports = function(controller) {
 							bot.reply(message, 'Something has gone wrong')
 						} else {
 							console.log('Made that card')
-							// bot.reply(message, `Added "${message.match[1]}" to the list **${channel.list.name}** on board [**${channel.board.name}**](${channel.board.url})`)
 
 						}
 
 				})
 			}
-		})
 	})
 
 
@@ -168,7 +142,7 @@ module.exports = function(controller) {
 	controller.on('bot_space_leave', (bot, message) => {
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (channel && channel.webhook) {
-				t.del(`/1/webhooks/${channel.webhook.id}`, function(err, data) {
+				t.del(`/1/webhooks/${message.trelloChannel.webhook.id}`, function(err, data) {
 					if (err) console.log('Error deleting webhook')
 					else console.log({data})
 				})
@@ -265,15 +239,15 @@ module.exports = function(controller) {
 							}
 						])
 						// function(res, convo) {
-						// 	if (res.text.match(/^[\d]+$/) && boardList[res.text]) {
-						// 		const board = boardList[res.text]
-						// 		// set the channel board default, what about list default?
-						// 		console.log({board})
-						// 		convo.say('Landed one!')
-						// 		convo.next()
-						// 	} else {
-						// 		convo.silentRepeat()
-						// 	}
+						//	if (res.text.match(/^[\d]+$/) && boardList[res.text]) {
+						//		const board = boardList[res.text]
+						//		// set the channel board default, what about list default?
+						//		console.log({board})
+						//		convo.say('Landed one!')
+						//		convo.next()
+						//	} else {
+						//		convo.silentRepeat()
+						//	}
 					
 
 					convo.next()
