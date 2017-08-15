@@ -7,6 +7,7 @@ module.exports = function(controller) {
 	// list all user boards
 	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
 		controller.storage.channels.get(message.channel, function(err, channel) {
+			console.log('=======BOARDS COMMAND CHANNEL RECORD:\n', channel)
 			message.trelloChannel = channel
 			controller.trigger('selectBoard', [bot, message])
 		})
@@ -126,7 +127,9 @@ module.exports = function(controller) {
 				bot.reply(message, "Something went wrong, friends! Please try again...")
 				return 
 			}
+			console.log({channel})
 			if (channel && channel.list && channel.list.id) {
+				console.log('in add card makin a card!')
 
 				t.post('/1/cards/', {
 					name: message.match[1], 
@@ -137,6 +140,7 @@ module.exports = function(controller) {
 							console.log('err:', err)
 							bot.reply(message, 'Something has gone wrong')
 						} else {
+							console.log('Made that card')
 							// bot.reply(message, `Added "${message.match[1]}" to the list **${channel.list.name}** on board [**${channel.board.name}**](${channel.board.url})`)
 
 						}
@@ -208,19 +212,26 @@ module.exports = function(controller) {
 										
 										// create/update webhook for channel
 										// if webhook exists for this channel, update it
+										console.log({message})
 										if (message.trelloChannel && message.trelloChannel.webhook) {
 											console.log('====Updating trello webhook')
 											t.put('1/webhooks/' + message.trelloChannel.webhook.id, { idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}` }, function(err, data) {
 												if (err) {
 													console.log('Error updating webhook: ', err)
 												} else {
+													controller.storage.channels.save({
+														id: message.channel,
+														board: board,
+														list: board.lists[0],
+														webhook: data
+													})
 													console.log({data})
 												}
 											})
 
 										} else {
+											console.log('=======CREATING NEW WEBHOOK')
 											// if no webhook exists for this channel, create one
-											console.log(process.env.public_address)
 											t.post('1/webhooks', {idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}`}, function(err, data) {
 												if (err) {
 													console.log('Error setting up webhook: ', err)
