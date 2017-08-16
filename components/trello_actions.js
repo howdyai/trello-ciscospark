@@ -32,7 +32,7 @@ TrelloWrapper.prototype.getBoards = function(data) {
 
 TrelloWrapper.prototype.addCard = function(data) {
 	return new Promise((resolve, reject)=> {
-		t.post('/1/cards/', {
+		this.t.post('/1/cards/', {
 		name: message.match[1], 
 		idList: channel.list.id
 	}, 
@@ -44,6 +44,52 @@ TrelloWrapper.prototype.addCard = function(data) {
 				resolve(data)
 			}
 	})
+})
+}
+
+TrelloWrapper.prototype.updateWebhook = function(message, board) {
+	return promise ((resolve, reject) => {
+		this.t.put('1/webhooks/' + message.trelloChannel.webhook.id, { idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}` }, (err, data) => {
+		if (err) {
+			console.log('Error updating webhook: ', err)
+			reject(err)
+		} else {
+			controller.storage.channels.save({
+				id: message.channel,
+				board: board,
+				list: board.lists[0],
+				webhook: data
+			})
+			resolve(data)
+		}
+	})
+
+
+})
+}
+
+TrelloWrapper.prototype.createWebhook = function(message, board) {
+	return new Promise((resolve, reject) => {
+		this.t.post('1/webhooks', {idModel: board.id, callbackURL: `${process.env.public_address}/trello/receive?channel=${message.channel}`}, (err, data) => {
+		if (err) {
+			console.log('Error setting up webhook: ', err)
+		} else {
+			controller.storage.channels.save({
+				id: message.channel,
+				board: board,
+				list: board.lists[0],
+				webhook: data
+			}, (err, data) => {
+				if (err) {
+					console.log({err})
+					reject(err)
+				} else {
+					resolve(data)
+				}
+			})
+		}
+	})
+
 })
 }
 
