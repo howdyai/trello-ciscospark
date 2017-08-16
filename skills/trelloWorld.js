@@ -4,10 +4,6 @@ const t = new Trello(process.env.T_KEY, process.env.T_TOKEN)
 
 module.exports = function(controller) {
 
-	// list all user boards
-	controller.hears(['^boards$'], 'direct_message,direct_mention', function(bot, message){
-		controller.trigger('selectBoard', [bot, message])
-	})
 	
 	// list all user orgs
 	controller.hears(['^orgs$'], 'direct_message, direct_mention', function(bot, message) {
@@ -25,106 +21,6 @@ module.exports = function(controller) {
 		})
 	})
 	
-	// search cards
-	controller.hears(['^search(.*)?$'], 'direct_message,direct_mention', function(bot, message) {
-				const query = message.match[1].trim()
-				console.log({query})
-
-				t.get('1/search', {
-					query: query,
-					modelTypes: 'cards',
-					idBoards: message.trelloChannel.board.id,
-					card_fields: 'name,desc,due,subscribed',
-					card_list: true,
-					partial: true
-				},
-					(err, data) => {
-				if (err) {
-					console.log('err:', err)
-					bot.reply(message, 'Something has gone wrong')
-				} else {
-					console.log({data})
-					console.log(data.cards[0])
-					let searchResults = data.cards.map((el, i) => `\n\n**${i}:** "${el.name}" in *${el.list.name}*`)
-							.join('')
-					bot.startConversation(message, function(err, convo) {
-
-						convo.ask(data.cards.length ? `**Search Results from [**${message.trelloChannel.board.name}**](${message.trelloChannel.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${message.trelloChannel.board.name}**](${message.trelloChannel.board.url})`, [
-							{
-								pattern: /^move ([\d]+)$/,
-								callback: function(res, convo) {
-									if (data.cards[res.match[1]]) {
-										const destinations = channel.board.lists.reduce((a, b, i) => a.concat(`\n\n**${i}:** ${b.name}`), '')//
-										convo.setVar('card', data.cards[res.match[1]])
-										console.log({destinations})
-										convo.ask(`Where would you like to move it?\n\n${destinations}`, [
-											{
-												pattern: /^[\d]+$/,
-												callback: (res, convo) => {
-													if (channel.board.lists[res.text]) {
-														t.put(`1/cards/${convo.vars.card.id}`, {idList: channel.board.lists[res.text].id}, function(err, data) {
-															if (err) {
-																console.log({err})
-															}													
-														})
-														convo.stop()
-													} else {
-														convo.repeat()
-													}
-													
-												}
-											}, {
-												default: true,
-												callback: (res, convo) => {
-													convo.say('Please select a list, or say \`cancel\`')
-													// convo.silentRepeat()
-													convo.repeat()
-												}
-											}
-										])
-										convo.next()
-									}
-								}
-							},
-							// this is a hack, but allows having an open ended convo, and nesting commands
-							// if no chainable commands heard after search, bail from the convo and run the text through hears
-							{
-								default: true,
-								callback: function(res, convo) {
-									convo.stop()
-									controller.receiveMessage(bot, res)
-								}
-							}
-						])
-						// convo.next()
-					})
-				}
-				})
-
-	})
-
-	controller.hears(['^add (.*)'], 'direct_message, direct_mention', function(bot, message) {
-		console.log({message})
-		console.log(message.channel)
-			if (message.trelloChannel&& message.trelloChannel.list && message.trelloChannel.list.id) {
-				t.post('/1/cards/', {
-					name: message.match[1], 
-					idList: channel.list.id
-				}, 
-					function(err, data) {
-						if (err) {
-							console.log('err:', err)
-							bot.reply(message, 'Something has gone wrong')
-						} else {
-							console.log('Made that card')
-
-						}
-
-				})
-			}
-	})
-
-
 	controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
 		bot.reply(message, 'Catchall, I will persist after you perish. I heard: ' + message.text)
 	})
@@ -216,7 +112,9 @@ module.exports = function(controller) {
 														list: board.lists[0],
 														webhook: data
 													}, function (err, res) {
-														if (err) console.log({err})
+														if (err) {
+															console.log({err})
+														}
 														console.log('====Created new webhook successfully:\n', data)
 													})
 												}
