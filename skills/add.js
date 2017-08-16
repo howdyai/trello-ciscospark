@@ -1,7 +1,7 @@
 
 module.exports = (controller) => {
 
-	controller.hears(['^add (.*)'], 'direct_message, direct_mention', (bot, message) => {
+	controller.on('addCard', (bot, message) => {
 		console.log({message})
 		console.log(message.channel)
 			if (message.trelloChannel&& message.trelloChannel.list && message.trelloChannel.list.id) {

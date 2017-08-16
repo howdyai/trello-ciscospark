@@ -1,11 +1,8 @@
 
 module.exports = (controller) => {
+
+
 	// list all user boards
-	controller.hears(['^boards$'], 'direct_message,direct_mention', (bot, message) =>{
-		controller.trigger('selectBoard', [bot, message])
-	})
-
-
 	controller.on('selectBoard', (bot, message) => {
 		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, (err, data) => {
 			if (err) {

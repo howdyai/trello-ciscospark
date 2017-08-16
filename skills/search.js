@@ -1,6 +1,6 @@
 
 module.exports = (controller) => {
-	controller.hears(['^search(.*)?$'], 'direct_message,direct_mention', (bot, message)=> {
+	controller.on('searchBoard', (bot, message)=> {
 				const query = message.match[1].trim()
 
 				t.get('1/search', {
