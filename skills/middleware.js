@@ -21,7 +21,9 @@ module.exports = (controller) => {
 
 						message.channel_config = channel 
 						// pass in user and channel so our actions are fully configured
-						bot.trello = trelloActions.create(user, channel)//new Trello(process.env.T_KEY, process.env.T_TOKEN)
+						// create trello api wrapper, requires a trello token
+						// add all our trello functions to the bot object
+							bot.trello = trelloActions.create(user, channel)
 						next();
 					}
 				})

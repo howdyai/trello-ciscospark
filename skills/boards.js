@@ -4,13 +4,12 @@ module.exports = (controller) => {
 
 	// list all user boards
 	controller.on('selectBoard', (bot, message) => {
-		t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, (err, data) => {
-			if (err) {
-				console.log('err:', err)
-			} else {
+		bot.trello.getBoards()
+			.then(data => {
 				const boardArray = data
 				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
 				boardList = boardList.join('')
+
 				if (message.user === controller.identity.emails[0]) {
 					// space joins will have bot identity as user, this works around that
 					controller.api.people.get(message.original_message.actorId).then(identity => {
@@ -92,8 +91,7 @@ module.exports = (controller) => {
 					})
 
 				}
-			}
-		})
+			})
 	})
 }
 
