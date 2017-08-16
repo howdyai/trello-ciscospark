@@ -26,14 +26,14 @@ module.exports = (controller) => {
 						console.log('Err getting channel from storage: ', err)
 						// controller.trigger('selectBoard', [bot, message])
 					} 
+					message.channel_config = channel 
+					// pass in user and channel so our actions are fully configured
+					// create trello api wrapper, requires a trello token
+					// add all our trello functions to the bot object
 
-						message.channel_config = channel 
-						// pass in user and channel so our actions are fully configured
-						// create trello api wrapper, requires a trello token
-						// add all our trello functions to the bot object
-							bot.trello = controller.trelloActions.create(user, channel)
+					bot.trello = controller.trelloActions.create(user, channel)
 					console.log('======BOT.TRELLO IN MIDDLEWARE', bot.trello)
-						next();
+					next();
 				})
 
 			}
