@@ -1,7 +1,7 @@
 
 const Trello = require('node-trello')
 
-function TrelloWrapper(user, channel) {
+var TrelloWrapper = function(user, channel) {
 
 	this.defaultBoard = channel.board.id
 	this.defaultList = channel.list.id
@@ -25,13 +25,27 @@ TrelloWrapper.prototype.getBoards = function(data) {
 	})
 }
 
-module.exports = function() {
-	return {
-		create: function(user, channel) {
-			return new TrelloWrapper(user, channel)
-		}
-	}
+TrelloWrapper.prototype.addCard = function(data) {
+	return new Promise(function(resolve, reject) {
+		t.post('/1/cards/', {
+		name: message.match[1], 
+		idList: channel.list.id
+	}, 
+		function(err, data) {
+			if (err) {
+				console.log('err:', err)
+				reject(err)
+			} else {
+				resolve(data)
+			}
+	})
+})
 }
+
+
+exports.create = function(user, channel) {
+	return new TrelloWrapper(user, channel)
+}	
 
 // module.create = function(user, channel) {
 // 	return new TrelloWrapper(user, channel)

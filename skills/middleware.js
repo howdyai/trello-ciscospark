@@ -1,7 +1,9 @@
 
 module.exports = (controller) => {
 
+
      controller.middleware.receive.use((bot, message, next) => {
+		 console.log('=======RECEIVE MIDDLEWARE FIRED')
 		controller.storage.users.get(message.user, (err, user) => {
 			console.log({message})
 
@@ -18,21 +20,20 @@ module.exports = (controller) => {
 					else next()
 				})
 			} else {
+				console.log('Have user, looking for channel')
 				controller.storage.channels.get(message.channel, (err, channel) => {
 					if (err) {
 						console.log('Err getting channel from storage: ', err)
-					} if (! channel) {
 						// controller.trigger('selectBoard', [bot, message])
-						next()
-					} else {
+					} 
 
 						message.channel_config = channel 
 						// pass in user and channel so our actions are fully configured
 						// create trello api wrapper, requires a trello token
 						// add all our trello functions to the bot object
 							bot.trello = controller.trelloActions.create(user, channel)
+					console.log('======BOT.TRELLO IN MIDDLEWARE', bot.trello)
 						next();
-					}
 				})
 
 			}

@@ -3,6 +3,7 @@ module.exports = (controller) => {
 
 	controller.on('bot_space_join', (bot, message) => {
 		// what middleware includes listeners?
+		console.log({message})
 		controller.storage.channels.get(message.channel, function(err, channel) {
 
 		if (! channel || ! channel.list) {
