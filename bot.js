@@ -66,6 +66,13 @@ require("fs").readdirSync(normalizedPath).forEach(function(file) {
 });
 
 
+// Random star trek quote as catchall during testing
+const { randomQuote } = require('trek-quote')
+controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
+	bot.reply(message, `${randomQuote()}\n I heard ${message.text}`)
+})
+
+
 // This captures and evaluates any message sent to the bot as a DM
 // or sent to the bot in the form "@bot message" and passes it to
 // Botkit Studio to evaluate for trigger words and patterns.
