@@ -23,7 +23,16 @@ TrelloWrapper.prototype.getBoards = function(data) {
 			} else resolve(data)
 		})
 	})
-
-module.create = function(user, channel) => {
-	return new TrelloWrapper(user, channel)
 }
+
+module.exports = function() {
+	return {
+		create: function(user, channel) {
+			return new TrelloWrapper(user, channel)
+		}
+	}
+}
+
+// module.create = function(user, channel) {
+// 	return new TrelloWrapper(user, channel)
+// }
