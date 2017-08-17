@@ -1,14 +1,14 @@
 
 module.exports = (controller) => {
 
-
 	// list all user boards
 	controller.on('selectBoard', (bot, message) => {
-
 		if (message.user === controller.identity.emails[0]) {
+			console.log({message})
 					// space joins will have bot identity as user, this works around that
 					controller.api.people.get(message.original_message.actorId).then(identity => {
 						console.log({identity})
+						console.log('=====CONVERTING BOT JOIN USER FIED TO:', identity.emails[0])
 						message.user = identity.emails[0]
 						controller.trigger('selectBoard', [bot, message])
 						return
@@ -18,8 +18,9 @@ module.exports = (controller) => {
 		bot.trello.getBoards()
 			.then(data => {
 				const boardArray = data
-				let boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`)
-				boardList = boardList.join('')
+				const boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`).join('')
+				// boardList = boardList.join('')
+				console.log({message})
 
 					bot.startConversation(message, (err, convo) => {
 
@@ -34,18 +35,35 @@ module.exports = (controller) => {
 										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
 										if (message.channel_config && message.channel_config.webhook) {
 											// update current webhook with trello if it exists, so we dont have zombie webhooks
-											bot.trello.updateWebhook(message, board).then(data => {
+											bot.trello.updateBoardWebhook({
+												webhookId: message.channel_config.webhook.id,
+												boardId: board.id,
+												channel: message.channel
+											}).then(data => {
 
-			controller.storage.channels.save({
-				id: message.channel,
-				board: board,
-				list: board.lists[0],
-				webhook: data
-			})
-											})
+												controller.storage.channels.save({
+													id: message.channel,
+													board: board,
+													list: board.lists[0],
+													webhook: data
+												})
+											}).catch(err => console.log(err))
 										} else {
 											// if no webhook exists for this channel, create one
-											bot.trello.createWebhook(message, board)
+											bot.trello.registerBoardWebhook({
+												boardId: board.id,
+												channel: message.channel
+											}).then(data => {
+												controller.storage.channels.save({
+													id: message.channel,
+													board: board,
+													list: board.lists[0],
+													webhook: data
+												}, (err, channel) => {
+													if (err) console.log('=======ERROR SAVING')
+													else console.log('========SAVED CHANNEL: ', channel)
+												})
+											}).catch(err => console.log(err))
 										}
 										convo.next()
 									} else {

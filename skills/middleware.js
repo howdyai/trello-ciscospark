@@ -25,12 +25,12 @@ module.exports = (controller) => {
 						// controller.trigger('selectBoard', [bot, message])
 					} 
 					message.channel_config = channel 
+					console.log('========CHANNEL CONFIG SET TO: ', channel)
 					// pass in user and channel so our actions are fully configured
 					// create trello api wrapper, requires a trello token
 					// add all our trello functions to the bot object
 
 					bot.trello = controller.trelloActions.create(user, channel)
-					console.log('======BOT.TRELLO IN MIDDLEWARE', bot.trello)
 					next();
 				})
 

@@ -3,12 +3,17 @@ module.exports = (controller) => {
 
 	controller.on('addCard', (bot, message) => {
 		console.log({message})
-			if (message.channel_config ){ //&& message.channel_config.list && message.channel_config.list.id) {
+			if (message.channel_config){ 
+				// listId will be optional
+				const listId = undefined//message.channel_config.list.id
+				const title = message.match[1] // minus the list if given
 
-				bot.trello.addCard({
-					name: message.match[1], 
-					idList: channel.list.id
-				})
+				bot.trello.addCard(title)
+					.catch(err => {
+						bot.reply('Something went wrong')
+						console.log(err)
+					})
+				
 			} else {
 				bot.reply(message, 'Board settings are not right!')
 				// user is not setup properly
