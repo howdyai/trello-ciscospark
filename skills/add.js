@@ -3,9 +3,9 @@ module.exports = (controller) => {
 
 	controller.on('addCard', (bot, message) => {
 		console.log({message})
-			if (message.channel_config){ 
+			if (message.trello_channel){ 
 				// listId will be optional
-				const listId = undefined//message.channel_config.list.id
+				const listId = undefined//message.trello_channel.list.id
 				const title = message.match[1] // minus the list if given
 
 				bot.trello.addCard(title)

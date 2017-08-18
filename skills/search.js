@@ -7,7 +7,7 @@ module.exports = (controller) => {
 
 		bot.startConversation(message, (err, convo)=> {
 
-					convo.ask(data.cards.length ? `**Search Results from [**${message.channel_config.board.name}**](${message.channel_config.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${message.channel_config.board.name}**](${message.channel_config.board.url})`, [
+					convo.ask(data.cards.length ? `**Search Results from [**${message.trello_channel.board.name}**](${message.trello_channel.board.url}) for query \`${query}\`:** ${searchResults}`: `No cards found that matched: \`${query}\` in board [**${message.trello_channel.board.name}**](${message.trello_channel.board.url})`, [
 						{
 							pattern: /^move ([\d]+)$/,
 							callback: (res, convo)=> {

@@ -33,10 +33,10 @@ module.exports = (controller) => {
 										const board = boardArray[res.text]
 
 										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
-										if (message.channel_config && message.channel_config.webhook) {
+										if (message.trello_channel && message.trello_channel.webhook) {
 											// update current webhook with trello if it exists, so we dont have zombie webhooks
 											bot.trello.updateBoardWebhook({
-												webhookId: message.channel_config.webhook.id,
+												webhookId: message.trello_channel.webhook.id,
 												boardId: board.id,
 												channel: message.channel
 											}).then(data => {
