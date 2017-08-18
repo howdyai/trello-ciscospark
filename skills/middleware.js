@@ -15,7 +15,7 @@ module.exports = (controller) => {
 	})
 
 	// Get channel config, or prompt user to set up a board for the channel
-	controller.middleware.receive.user((bot, message, next) => {
+	controller.middleware.receive.use((bot, message, next) => {
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (! channel) {
 				controller.trigger('selectBoard')
