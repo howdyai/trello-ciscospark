@@ -42,16 +42,21 @@ var controller = Botkit.sparkbot({
     debug: true,
     // limit_to_domain: ['mycompany.com'],
     // limit_to_org: 'my_cisco_org_id',
-    public_address: process.env.public_address,
+    public_address: process.env.public_address + '/ciscospark/receive',
     ciscospark_access_token: process.env.access_token,
     studio_token: process.env.studio_token, // get one from studio.botkit.ai to enable content management, stats, message console and more
     secret: process.env.secret, // this is an RECOMMENDED but optional setting that enables validation of incoming webhooks
     webhook_name: 'Cisco Spark bot created with Botkit, override me before going to production',
     studio_command_uri: process.env.studio_command_uri,
+	json_file_store: './.data'
 });
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
+
+// Add trello api wrapper
+controller.trelloActions = require('./components/trello_actions.js')
+console.log('========TRELLO ACTIONS ON CONTROLLER:\n', controller.trelloActions)
 
 // Tell Cisco Spark to start sending events to this application
 require(__dirname + '/components/subscribe_events.js')(controller);
@@ -63,6 +68,14 @@ var normalizedPath = require("path").join(__dirname, "skills");
 require("fs").readdirSync(normalizedPath).forEach(function(file) {
   require("./skills/" + file)(controller);
 });
+
+
+// Random star trek quote as catchall during testing
+const { randomQuote } = require('trek-quote')
+controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
+	console.log({message})
+	bot.reply(message, `${randomQuote()}\n\n I heard ${message.text}`)
+})
 
 
 // This captures and evaluates any message sent to the bot as a DM
