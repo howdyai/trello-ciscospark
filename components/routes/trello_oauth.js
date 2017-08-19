@@ -22,9 +22,11 @@ module.exports = (webserver, controller) => {
     /*
     /     OAuth Setup and Functions
     */
+	const scope = "read,write,account";
+	const expire = "never";
     const requestURL = "https://trello.com/1/OAuthGetRequestToken";
     const accessURL = "https://trello.com/1/OAuthGetAccessToken";
-    const authorizeURL = "https://trello.com/1/OAuthAuthorizeToken";
+    const authorizeURL = "https://trello.com/1/authorize";
     const appName = "Trello Spark Bot";
 
     // Be sure to include your key and secret in ð.env âï¸ over there.
@@ -51,7 +53,7 @@ module.exports = (webserver, controller) => {
                 user,
                 channel
             };
-            res.redirect(`${authorizeURL}?oauth_token=${token}&name=${appName}`);
+            res.redirect(`${authorizeURL}?scope=${scope}&expiration=${expire}&oauth_token=${token}&name=${appName}`);
         });
     };
 
