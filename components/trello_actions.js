@@ -5,6 +5,8 @@ var WEBHOOK_ROOT = process.env.public_address
 
 var TrelloWrapper = function(user, channel) {
 
+	this.adminToken = process.env.T_TOKEN // maybe webhooks should be setup with a global token, so they're easier to remove all at once
+
 	if (channel && channel.board && channel.list) {
 		this.defaultBoard = channel.board.id
 		this.defaultList = channel.list.id
