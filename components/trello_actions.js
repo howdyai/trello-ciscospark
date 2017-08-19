@@ -5,7 +5,7 @@ var WEBHOOK_ROOT = process.env.public_address
 
 var TrelloWrapper = function(user, channel) {
 
-	if (channel) {
+	if (channel && channel.board && channel.list) {
 		this.defaultBoard = channel.board.id
 		this.defaultList = channel.list.id
 		this.channelId = channel.id

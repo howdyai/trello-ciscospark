@@ -2,7 +2,7 @@
 module.exports = (controller) => {
 
 	controller.on('addCard', (bot, message) => {
-		console.log({message})
+		console.log('====MESSAGE IN addCard')
 			if (message.trello_channel){ 
 				// listId will be optional
 				const listId = undefined//message.trello_channel.list.id

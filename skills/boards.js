@@ -3,24 +3,13 @@ module.exports = (controller) => {
 
 	// list all user boards
 	controller.on('selectBoard', (bot, message) => {
-		if (message.user === controller.identity.emails[0]) {
-			console.log({message})
-					// space joins will have bot identity as user, this works around that
-					controller.api.people.get(message.original_message.actorId).then(identity => {
-						console.log({identity})
-						console.log('=====CONVERTING BOT JOIN USER FIED TO:', identity.emails[0])
-						message.user = identity.emails[0]
-						controller.trigger('selectBoard', [bot, message])
-						return
-					})
-				} else {
+		console.log('===SELECT BOARD')
 
 		bot.trello.getBoards()
 			.then(data => {
 				const boardArray = data
 				const boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`).join('')
 				// boardList = boardList.join('')
-				console.log({message})
 
 					bot.startConversation(message, (err, convo) => {
 
@@ -28,6 +17,7 @@ module.exports = (controller) => {
 							{
 								pattern: /^[\d]+$/,
 								callback: (res, convo) => {
+									console.log({res})
 									if (boardArray[res.text]) {
 
 										const board = boardArray[res.text]
@@ -49,6 +39,7 @@ module.exports = (controller) => {
 												})
 											}).catch(err => console.log(err))
 										} else {
+											console.log('======CREATE NEW WEBHOOK')
 											// if no webhook exists for this channel, create one
 											bot.trello.registerBoardWebhook({
 												boardId: board.id,
@@ -75,6 +66,7 @@ module.exports = (controller) => {
 							{
 								default: true,
 								callback: (res, convo) => {
+									console.log('======NO MATCH CONVO REPEATING')
 									convo.repeat()
 									convo.next()
 								}
@@ -84,7 +76,7 @@ module.exports = (controller) => {
 					})
 
 				})
-			}})
+			})
 }
 
 

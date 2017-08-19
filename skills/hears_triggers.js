@@ -14,7 +14,7 @@ module.exports = (controller) => {
 
 	// List orgs the user is in
 	controller.hears(['^orgs$'], 'direct_message, direct_mention', (bot, message) => {
-		controller.trigger(['listOrgs'], [bot, message])
+		controller.trigger('listOrgs', [bot, message])
 
 	})
 

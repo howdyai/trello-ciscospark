@@ -56,7 +56,6 @@ var webserver = require(__dirname + '/components/express_webserver.js')(controll
 
 // Add trello api wrapper
 controller.trelloActions = require('./components/trello_actions.js')
-console.log('========TRELLO ACTIONS ON CONTROLLER:\n', controller.trelloActions)
 
 // Tell Cisco Spark to start sending events to this application
 require(__dirname + '/components/subscribe_events.js')(controller);
