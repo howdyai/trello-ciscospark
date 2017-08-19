@@ -12,11 +12,9 @@ module.exports = (controller) => {
 						console.log({identity})
 
 						message.user = identity.emails[0]
-						bot.reply(message, 'Thanks for inviting me! To start using Trello here, assign a board to this Space')
-
 						message.text = 'boards'
-						console.log('======TO BE RCVD"\n', message)
 
+						bot.reply(message, 'Thanks for inviting me! To start using Trello here, assign a board to this Space')
 						controller.receiveMessage(bot, message)
 					})
 				}

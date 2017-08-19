@@ -15,6 +15,7 @@
     "express": "^4.14.0",
     "node-env-file": "^0.1.8",
     "node-trello": "^1.2.1",
+    "oauth": "^0.9.15",
     "request": "^2.79.0",
 	"trek-quotes": "jonchurch/trek-quotes"
   },
@@ -29,7 +30,7 @@
   "homepage": "https://github.com/howdyai/botkit-starter-ciscospark",
   "keywords": [
     "bots",
-	"trello",
+    "trello",
     "chatbots",
     "Cisco Spark"
   ],

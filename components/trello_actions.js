@@ -5,7 +5,9 @@ var WEBHOOK_ROOT = process.env.public_address
 
 var TrelloWrapper = function(user, channel) {
 
-	if (channel) {
+	this.adminToken = process.env.T_TOKEN // maybe webhooks should be setup with a global token, so they're easier to remove all at once
+
+	if (channel && channel.board && channel.list) {
 		this.defaultBoard = channel.board.id
 		this.defaultList = channel.list.id
 		this.channelId = channel.id
@@ -73,24 +75,27 @@ TrelloWrapper.prototype.searchBoard = function(query, opts) {
 // default channel/list settings can be plugged into the wrapper
 // so defaults are inferred if not passed in opts
 TrelloWrapper.prototype.addCard = function(cardTitle, opts) {
-	var listId = opts && opts.listId ? opts.listId : this.defaultList
-	if (! listId) {
-		console.log('Error, no list provided or inferred')
-		return 
-	}
 	return new Promise((resolve, reject)=> {
-		this.t.post('/1/cards/', {
-		name: cardTitle,
-		idList: listId
-	}, 
-		function(err, data) {
-			if (err) {
-				console.log('err:', err)
-				reject(err)
-			} else {
-				resolve(data)
-			}
-	})
+		var listId = opts && opts.listId ? opts.listId : this.defaultList
+		console.log({listId})
+		if (! listId) {
+			reject('Error, no list provided or inferred')
+		} else {
+			this.t.post('/1/cards/', {
+			name: cardTitle,
+			idList: listId
+		}, 
+			function(err, data) {
+				if (err) {
+					console.log('err:', err)
+					reject(err)
+				} else {
+					resolve(data)
+				}
+		})
+
+		}
+
 })
 }
 
