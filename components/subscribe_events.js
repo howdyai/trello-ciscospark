@@ -30,6 +30,8 @@ module.exports = function(controller) {
                 name: webhook_name,
             }).then(function(res) {
                 debug('Cisco Spark: SUCCESSFULLY UPDATED CISCO SPARK WEBHOOKS');
+				const bot = controller.spawn({})
+				controller.trigger('connect', [bot])
             }).catch(function(err) {
                 debug('FAILED TO REGISTER WEBHOOK', err);
                 throw new Error(err);
@@ -45,6 +47,8 @@ module.exports = function(controller) {
             }).then(function(res) {
 
                 debug('Cisco Spark: SUCCESSFULLY REGISTERED CISCO SPARK WEBHOOKS');
+				const bot = controller.spawn({})
+				controller.trigger('connect', [bot])
             }).catch(function(err) {
                 debug('FAILED TO REGISTER WEBHOOK', err);
                 throw new Error(err);

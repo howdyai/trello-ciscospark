@@ -68,6 +68,9 @@ require("fs").readdirSync(normalizedPath).forEach(function(file) {
   require("./skills/" + file)(controller);
 });
 
+// SetupAdmin
+require(__dirname + '/components/setup_admin.js')(controller)
+
 
 // Random star trek quote as catchall during testing
 const { randomQuote } = require('trek-quote')

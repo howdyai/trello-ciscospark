@@ -1,24 +1,41 @@
 
 module.exports = (controller) => {
 
+	controller.middleware.receive.use((bot, message, next) => {
+		// ignore our own bots messages
+		if (message.user === controller.identity.emails[0]) {
+					return
+				} 
+		controller.storage.users.get({id: 'admin'}, (err, admin) => {
+			console.log({message})
+			if (! admin ) {
+				if (process.env.admin_user === message.user) {
+					controller.trigger('setupAdmin', [bot, message])
+				} else {
+					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
+				}
+			} else {
+				next()
+			}
+		})
+	})
+
 	// Get user config, or prompt user to auth their trello account
 	controller.middleware.receive.use((bot, message, next) => {
-		if (message.user === controller.identity.emails[0]) {
-			return
-		} else {
-			console.log({message})
-			console.log('======RUNNING USER MIDDLEWARE')
-			controller.storage.users.get(message.user, (err, user) => {
-				if (! user) {
-					controller.trigger('setupUser', [bot, message])
-					return
-				} else {
-					message.trello_user = user
-					console.log({user})
-					next()
-				}
-			})
-		}
+		 
+		console.log({message})
+		console.log('======RUNNING USER MIDDLEWARE')
+		controller.storage.users.get(message.user, (err, user) => {
+			if (! user) {
+				controller.trigger('setupUser', [bot, message])
+				return
+			} else {
+				message.trello_user = user
+				console.log({user})
+				next()
+			}
+		})
+		
 
 	})
 
