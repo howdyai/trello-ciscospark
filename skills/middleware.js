@@ -6,10 +6,10 @@ module.exports = (controller) => {
 		if (message.user === controller.identity.emails[0]) {
 					return
 				} 
-		controller.storage.users.get({id: 'admin'}, (err, admin) => {
-			console.log({message})
+		controller.storage.users.get(process.env.admin_user, (err, admin) => {
 			if (! admin ) {
-				if (process.env.admin_user === message.user) {
+				if (admin.id === message.user) {
+					console.log({admin})
 					controller.trigger('setupAdmin', [bot, message])
 				} else {
 					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
@@ -22,16 +22,12 @@ module.exports = (controller) => {
 
 	// Get user config, or prompt user to auth their trello account
 	controller.middleware.receive.use((bot, message, next) => {
-		 
-		console.log({message})
-		console.log('======RUNNING USER MIDDLEWARE')
 		controller.storage.users.get(message.user, (err, user) => {
 			if (! user) {
 				controller.trigger('setupUser', [bot, message])
 				return
 			} else {
 				message.trello_user = user
-				console.log({user})
 				next()
 			}
 		})
@@ -41,7 +37,6 @@ module.exports = (controller) => {
 
 	// Get channel config, or prompt user to set up a board for the channel
 	controller.middleware.receive.use((bot, message, next) => {
-		console.log('=====RUNNING CHANNEL MIDDLEWARE')
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (! channel) {
 				bot.trello = controller.trelloActions.create(message.user)

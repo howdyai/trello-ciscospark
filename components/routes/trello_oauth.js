@@ -70,7 +70,7 @@ module.exports = (webserver, controller) => {
                 token: accessToken,
                 channel: secrets.channel
             }
-            var bot = controller.spawn()
+            var bot = controller.spawn({})
             controller.trigger('oauthSuccess', [bot, data])
         });
     };

@@ -34,7 +34,7 @@ TrelloWrapper.prototype.getBoards = function(data) {
 
 TrelloWrapper.prototype.listOrgs = function() {
 	return new Promise((resolve, reject) => {
-		t.get('1/members/me/organizations', {fields: 'displayName,id'}, (err, data) => {
+		this.t.get('1/members/me/organizations', {fields: 'displayName,id'}, (err, data) => {
 		if (err) {
 			console.log('err:', err)
 			reject(err)
