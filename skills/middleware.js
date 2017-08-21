@@ -2,12 +2,26 @@
 module.exports = (controller) => {
 
 	controller.middleware.receive.use((bot, message, next) => {
+
 		// ignore our own bots messages
 		if (message.user === controller.identity.emails[0]) {
 					return
 				} 
+		bot.findConversation(message, function(convo) {
+			if (convo) {
+				message.in_convo = true;
+			}
+			next();
+		});
+		});	
+
+	controller.middleware.receive.use((bot, message, next) => {
 		controller.storage.teams.get('trello', (err, config) => {
 			if (! config) {
+				console.log('====NO CONFIG FOUND IN MIDDLEWARE, TRIGGERING SETUP')
+				if (message.in_convo) {
+					return next()
+				} 
 				if (process.env.admin_user === message.user) {
 					controller.trigger('setupTrello', [bot, message])
 				} else {
@@ -23,9 +37,13 @@ module.exports = (controller) => {
 	controller.middleware.receive.use((bot, message, next) => {
 		controller.storage.users.get(message.user, (err, user) => {
 			if (! user) {
+				if (message.in_convo) {
+					return next()
+				} 
 				controller.trigger('setupUser', [bot, message])
 				return
 			} else {
+				console.log({user})
 				message.trello_user = user
 				next()
 			}
@@ -38,6 +56,9 @@ module.exports = (controller) => {
 	controller.middleware.receive.use((bot, message, next) => {
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (! channel) {
+				if (message.in_convo) {
+					return next()
+				} 
 				bot.trello = controller.trelloActions.create(message.user)
 				controller.trigger('setupChannel', [bot, message])
 			} else {
@@ -49,6 +70,10 @@ module.exports = (controller) => {
 
 	// If user and board are set up, configure trello wrapper for their account
 	controller.middleware.receive.use((bot, message, next) => {
+		if (message.in_convo) {
+			return next()
+		} 
+		console.log({message})
 		console.log('=====Setting up wrapper')
 		bot.trello = controller.trelloActions.create(message.trello_user, message.trello_channel)
 		next()

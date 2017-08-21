@@ -3,25 +3,29 @@ module.exports = (controller) => {
 
 	controller.on('bot_space_join', (bot, message) => {
 		// what middleware includes listeners?
+		console.log('====Bot Space Join')
 		console.log({message})
 		controller.storage.channels.get(message.channel, function(err, channel) {
+				// space joins will have bot identity as user, this works around that
+				controller.api.people.get(message.original_message.actorId).then(identity => {
+					message.user = identity.emails[0]
 
-			if (message.user === controller.identity.emails[0]) {
-					// space joins will have bot identity as user, this works around that
-					controller.api.people.get(message.original_message.actorId).then(identity => {
-						console.log({identity})
-
-						message.user = identity.emails[0]
-						message.text = 'boards'
-
-						bot.reply(message, 'Thanks for inviting me! To start using Trello here, assign a board to this Space')
-						controller.receiveMessage(bot, message)
+					bot.reply(message, 'Thanks for inviting me! To start using Trello here, assign a board to this Space')
+					controller.storage.teams.get('trello', (err, trello) => {
+						if (err) {
+							console.log(err)
+						} else {
+							console.log('====CREATING ACTIONS WITH NO TOKEN')
+							bot.trello = controller.trelloActions.create(trello)
+							controller.trigger('selectBoard', [bot, message])
+						}
 					})
-				}
+					
 
-			controller.trigger('selectBoard', [bot, message])
+				})
+			}
 		
-		})
+		)
 	})
 
 	controller.on('bot_space_leave', (bot, message) => {

@@ -2,10 +2,15 @@
 const Trello = require('node-trello')
 
 var WEBHOOK_ROOT = process.env.public_address
+const ADMIN_TOKEN = process.env.T_TOKEN// @TODO use trello config constants
 
 var TrelloWrapper = function(user, channel) {
-
-	this.adminToken = process.env.T_TOKEN // maybe webhooks should be setup with a global token, so they're easier to remove all at once
+	console.log('===== ARGUEMNTS LENGTH',arguments.length)
+	if (user === undefined) {
+		console.log('user undefined')
+		// use admin token for system actions like configuring webhooks
+		user = {token: ADMIN_TOKEN}
+	}
 
 	if (channel && channel.board && channel.list) {
 		this.defaultBoard = channel.board.id

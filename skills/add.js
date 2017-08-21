@@ -2,7 +2,6 @@
 module.exports = (controller) => {
 
 	controller.on('addCard', (bot, message) => {
-		bot.reply({channel: process.env.admin_user}, 'Hi there')
 		console.log('====MESSAGE IN addCard')
 			if (message.trello_channel){ 
 				console.log(message.trello_channel)

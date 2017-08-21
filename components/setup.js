@@ -7,6 +7,12 @@ module.exports = (controller) => {
 	controller.storage.teams.get('trello', (err, config) => {
 		if (! config) {
 			controller.trigger('setupTrello', [bot])
+			// setup a temp trello record so middleware knows we're on it
+			controller.storage.teams.save({id: 'trello'}, (err, res) => {
+				if (err) {
+					console.log(err)
+				}
+			})
 		}
 	})
 	
@@ -33,10 +39,13 @@ module.exports = (controller) => {
 		}
 		console.log({data})
 
+
+		// do a get, copy user record
 		controller.storage.users.save(userObj, (err, user) => {
 			if (err) {
 				console.log(err)
 			} else {
+				// if user is admin user
 				if (data.user === process.env.admin_user) {
 					data.channel = data.user
 					bot.trello = controller.trelloActions.create(userObj)
@@ -50,25 +59,35 @@ module.exports = (controller) => {
 		})
 	})
 
-	controller.on('setupOrg', (bot, message) => {
-		bot.trello.listOrgs().then((orgs) => {
+	controller.on('setupOrg', function(bot, message) {
+		bot.trello.listOrgs().then(function(orgs) {
 
-			const orgList = orgs.map((el, i) => `\n\n**${i}:** ${el.displayName}`).join('')
-			console.log({message})
-			
+			orgs = orgs.map((el, i) => {
+				return {
+					index: `${i + 1}`,
+					display: `\n\n**${i + 1}:** ${el.displayName}`,
+					orgId: el.id,
+					name: el.displayName
+				}
+			})
+			// Join orgs display into string to send to user
+			const displayOrgs = orgs.map(el => el.display).join('')
+
 			bot.startPrivateConversation(message, function(err, convo) {
-				console.log({convo})
-				convo.ask(`Which Organization are your team's boards in? Respond with a number, *e.g. \`Trello\` 2* ${orgList}`, [
+				console.log('====ASK TO CHOOSE ORG')
+				convo.ask(`Which Organization are your team's boards in? Respond with the  number ${displayOrgs}`, [
 					{
 						pattern: /^[\d]+$/,
 						callback: (res, convo) => {
 							console.log({res})
-							if (orgs[res.text]) {
+							const match = orgs.find(el => el.index == res.text)
+							if (match) {
 								convo.say('Wooooowwweeeeee!')
 								controller.storage.teams.save({
 									// when will I need to lookup the org? When 
 									id: 'trello',
-									org: orgs[res.text].id,
+									orgId: match.orgId,
+									orgName: match.name,
 									token: message.token
 								}, (err, channel) => {
 									if (err) console.log('=======ERROR SAVING')

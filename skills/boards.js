@@ -4,7 +4,6 @@ module.exports = (controller) => {
 	// list all user boards
 	controller.on('selectBoard', (bot, message) => {
 		console.log('===SELECT BOARD')
-
 		bot.trello.getBoards()
 			.then(data => {
 				const boardArray = data
