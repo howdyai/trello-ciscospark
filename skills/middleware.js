@@ -6,11 +6,10 @@ module.exports = (controller) => {
 		if (message.user === controller.identity.emails[0]) {
 					return
 				} 
-		controller.storage.users.get(process.env.admin_user, (err, admin) => {
-			if (! admin ) {
-				if (admin.id === message.user) {
-					console.log({admin})
-					controller.trigger('setupAdmin', [bot, message])
+		controller.storage.teams.get('trello', (err, config) => {
+			if (! config) {
+				if (process.env.admin_user === message.user) {
+					controller.trigger('setupTrello', [bot, message])
 				} else {
 					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
 				}
