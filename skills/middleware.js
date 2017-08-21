@@ -20,8 +20,8 @@ module.exports = (controller) => {
 		controller.storage.teams.get('trello', (err, config) => {
 			if (! config) {
 				if (process.env.admin_user === message.user) {
-					controller.trigger('setupTrello', [bot, message])
 					if (message.in_convo)  { return next(); }
+					controller.trigger('setupTrello', [bot, message])
 				} else {
 					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
 				}
@@ -36,8 +36,8 @@ module.exports = (controller) => {
 
 		controller.storage.users.get(message.user, (err, user) => {
 			if (! user) {
-				controller.trigger('setupUser', [bot, message])
 				if (message.in_convo)  { return next(); }
+				controller.trigger('setupUser', [bot, message])
 				return
 			} else {
 				message.trello_user = user
@@ -53,9 +53,11 @@ module.exports = (controller) => {
 
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (! channel) {
+
 				bot.trello = controller.trelloActions.create(message.user)
-				controller.trigger('setupChannel', [bot, message])
 				if (message.in_convo)  { return next(); }
+
+				controller.trigger('setupChannel', [bot, message])
 
 			} else {
 				message.trello_channel = channel
