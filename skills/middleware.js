@@ -13,7 +13,7 @@ module.exports = (controller) => {
 			}
 			next();
 		});
-		});	
+	});	
 
 	controller.middleware.receive.use((bot, message, next) => {
 		controller.storage.teams.get('trello', (err, config) => {
@@ -23,6 +23,7 @@ module.exports = (controller) => {
 					return next()
 				} 
 				if (process.env.admin_user === message.user) {
+					if (message.in_convo)  { return next(); }
 					controller.trigger('setupTrello', [bot, message])
 				} else {
 					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
@@ -35,6 +36,7 @@ module.exports = (controller) => {
 
 	// Get user config, or prompt user to auth their trello account
 	controller.middleware.receive.use((bot, message, next) => {
+
 		controller.storage.users.get(message.user, (err, user) => {
 			if (! user) {
 				if (message.in_convo) {
@@ -48,19 +50,23 @@ module.exports = (controller) => {
 				next()
 			}
 		})
-		
+
 
 	})
 
 	// Get channel config, or prompt user to set up a board for the channel
 	controller.middleware.receive.use((bot, message, next) => {
+
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (! channel) {
 				if (message.in_convo) {
 					return next()
 				} 
 				bot.trello = controller.trelloActions.create(message.user)
+				if (message.in_convo)  { return next(); }
+
 				controller.trigger('setupChannel', [bot, message])
+
 			} else {
 				message.trello_channel = channel
 				next()
@@ -75,6 +81,7 @@ module.exports = (controller) => {
 		} 
 		console.log({message})
 		console.log('=====Setting up wrapper')
+		console.log('DEALING WITH MESSAGE:', message);
 		bot.trello = controller.trelloActions.create(message.trello_user, message.trello_channel)
 		next()
 	})
@@ -84,7 +91,7 @@ module.exports = (controller) => {
 			id: message.channel
 		}, (err, channel) => {
 			if (err) {
-				console.log(err) 
+				console.log(err)
 			} else {
 				controller.trigger('selectBoard', [bot, message])
 			}
@@ -93,7 +100,3 @@ module.exports = (controller) => {
 
 
 }
-
-
-
-
