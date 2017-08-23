@@ -2,7 +2,7 @@
 module.exports = (controller) => {
 	controller.on('searchBoard', (bot, message)=> {
 		const query = message.match[1].trim()
-		bot.trello.search(query).then(data => {
+		bot.trello.searchBoard(query).then(data => {
 			let searchResults = data.cards.map((el, i) => `\n\n**${i}:** "${el.name}" in *${el.list.name}*`).join('')
 
 		bot.startConversation(message, (err, convo)=> {
@@ -23,13 +23,13 @@ module.exports = (controller) => {
 													t.put(`1/cards/${convo.vars.card.id}`, {idList: channel.board.lists[res.text].id}, (err, data) => {
 														if (err) {
 															console.log({err})
-														}													
+														}
 													})
 													convo.stop()
 												} else {
 													convo.repeat()
 												}
-												
+
 											}
 										}, {
 											default: true,
@@ -55,7 +55,7 @@ module.exports = (controller) => {
 						}
 					])
 					// convo.next()
-				})			
+				})
 		})
 
 	})
