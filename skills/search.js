@@ -56,7 +56,9 @@ module.exports = (controller) => {
 					])
 					// convo.next()
 				})
-		})
+		}).catch(function(err) {
+				bot.reply(message,'An error occured: ' + err);
+		});
 
 	})
 }

@@ -55,10 +55,10 @@ TrelloWrapper.prototype.searchBoard = function(query, opts) {
 	var boardId = opts && opts.boardId ? opts.boardId : this.defaultList
 	if (! boardId) {
 		console.log('Error, no board default set or provided')
-		return 
+		return
 	}
 	return new Promise((resolve, reject) => {
-		t.get('1/search', {
+		this.t.get('1/search', {
 			query: query,
 			modelTypes: 'cards',
 			idBoards: boardId,
@@ -89,7 +89,7 @@ TrelloWrapper.prototype.addCard = function(cardTitle, opts) {
 			this.t.post('/1/cards/', {
 			name: cardTitle,
 			idList: listId
-		}, 
+		},
 			function(err, data) {
 				if (err) {
 					console.log('err:', err)
@@ -137,7 +137,7 @@ TrelloWrapper.prototype.updateBoardWebhook = function(opts) {
 
 exports.create = function(user, channel) {
 	return new TrelloWrapper(user, channel)
-}	
+}
 
 // module.create = function(user, channel) {
 // 	return new TrelloWrapper(user, channel)
