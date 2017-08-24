@@ -3,10 +3,11 @@ module.exports = (controller) => {
 
 	controller.middleware.receive.use((bot, message, next) => {
 
-		// ignore our own bots messages
+		// ignore our own bots messages //@TODO this doesnt really belong here
 		if (message.user === controller.identity.emails[0]) {
 					return
 				} 
+		// 
 		bot.findConversation(message, function(convo) {
 			if (convo) {
 				message.in_convo = true;
@@ -42,10 +43,9 @@ module.exports = (controller) => {
 				if (message.in_convo) {
 					return next()
 				} 
+				controller.debug('=====No user record found, triggering setupUser')
 				controller.trigger('setupUser', [bot, message])
-				return
 			} else {
-				console.log({user})
 				message.trello_user = user
 				next()
 			}
@@ -63,8 +63,6 @@ module.exports = (controller) => {
 					return next()
 				} 
 				bot.trello = controller.trelloActions.create(message.user)
-				if (message.in_convo)  { return next(); }
-
 				controller.trigger('setupChannel', [bot, message])
 
 			} else {
@@ -80,22 +78,8 @@ module.exports = (controller) => {
 			return next()
 		} 
 		console.log({message})
-		console.log('=====Setting up wrapper')
-		console.log('DEALING WITH MESSAGE:', message);
 		bot.trello = controller.trelloActions.create(message.trello_user, message.trello_channel)
 		next()
-	})
-
-	controller.on('setupChannel', (bot, message) => {
-		controller.storage.channels.save({
-			id: message.channel
-		}, (err, channel) => {
-			if (err) {
-				console.log(err)
-			} else {
-				controller.trigger('selectBoard', [bot, message])
-			}
-		})
 	})
 
 
