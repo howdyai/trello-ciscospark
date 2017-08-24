@@ -30,6 +30,7 @@ module.exports = (controller) => {
 					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
 				}
 			} else {
+				console.log({config})
 				next()
 			}
 		})

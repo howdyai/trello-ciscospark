@@ -7,12 +7,6 @@ module.exports = (controller) => {
 	controller.storage.teams.get('trello', (err, config) => {
 		if (! config) {
 			controller.trigger('setupTrello', [bot])
-			// setup a temp trello record so middleware knows we're on it
-			controller.storage.teams.save({id: 'trello'}, (err, res) => {
-				if (err) {
-					console.log(err)
-				}
-			})
 		}
 	})
 	
