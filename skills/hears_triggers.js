@@ -4,7 +4,7 @@
 module.exports = (controller) => {
 
 	controller.hears('^help$', 'direct_message, direct_mention', function(bot, message) {
-		controller.trigger('help', 'direct_message, direct_mention')
+		controller.trigger('help', [bot, message])
 	})
 
 	// list all user boards

@@ -2,10 +2,15 @@
 const Trello = require('node-trello')
 
 var WEBHOOK_ROOT = process.env.public_address
+const ADMIN_TOKEN = process.env.T_TOKEN// @TODO use trello config constants
 
 var TrelloWrapper = function(user, channel) {
-
-	this.adminToken = process.env.T_TOKEN // maybe webhooks should be setup with a global token, so they're easier to remove all at once
+	console.log('===== ARGUEMNTS LENGTH',arguments.length)
+	if (user === undefined) {
+		console.log('user undefined')
+		// use admin token for system actions like configuring webhooks
+		user = {token: ADMIN_TOKEN}
+	}
 
 	if (channel && channel.board && channel.list) {
 		this.defaultBoard = channel.board.id
@@ -34,7 +39,7 @@ TrelloWrapper.prototype.getBoards = function(data) {
 
 TrelloWrapper.prototype.listOrgs = function() {
 	return new Promise((resolve, reject) => {
-		t.get('1/members/me/organizations', {fields: 'displayName,id'}, (err, data) => {
+		this.t.get('1/members/me/organizations', {fields: 'displayName,id'}, (err, data) => {
 		if (err) {
 			console.log('err:', err)
 			reject(err)
@@ -50,10 +55,10 @@ TrelloWrapper.prototype.searchBoard = function(query, opts) {
 	var boardId = opts && opts.boardId ? opts.boardId : this.defaultList
 	if (! boardId) {
 		console.log('Error, no board default set or provided')
-		return 
+		return
 	}
 	return new Promise((resolve, reject) => {
-		t.get('1/search', {
+		this.t.get('1/search', {
 			query: query,
 			modelTypes: 'cards',
 			idBoards: boardId,
@@ -84,7 +89,7 @@ TrelloWrapper.prototype.addCard = function(cardTitle, opts) {
 			this.t.post('/1/cards/', {
 			name: cardTitle,
 			idList: listId
-		}, 
+		},
 			function(err, data) {
 				if (err) {
 					console.log('err:', err)
@@ -132,7 +137,7 @@ TrelloWrapper.prototype.updateBoardWebhook = function(opts) {
 
 exports.create = function(user, channel) {
 	return new TrelloWrapper(user, channel)
-}	
+}
 
 // module.create = function(user, channel) {
 // 	return new TrelloWrapper(user, channel)
