@@ -27,8 +27,6 @@ module.exports = (controller) => {
 								callback: (res, convo) => {
 									const board = boards.find(el => el.index == res.text)
 									if (board) {
-										convo.setVar('board', board)
-										convo.say(`Heard! You selected board [**{{vars.board.name}}**]({{vars.board.url}})`)
 										const lists = board.lists.map((el, i) => {
 											return {
 												index: `${i + 1}`,
@@ -37,7 +35,9 @@ module.exports = (controller) => {
 												name: el.name,
 											}
 										})
-										console.log({lists})
+										board.lists = lists
+										convo.setVar('board', board)
+										convo.say(`Heard! You selected board [**{{vars.board.name}}**]({{vars.board.url}})`)
 
 										convo.setVar('lists', lists)
 										convo.setVar('displayList', lists.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,''))

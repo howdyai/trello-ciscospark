@@ -19,7 +19,7 @@ module.exports = (controller) => {
 	})
 
 	// Add a card with input as title
-	controller.hears(['^add (.*)'], 'direct_message, direct_mention', (bot, message) => {
+	controller.hears(['^add'], 'direct_message, direct_mention', (bot, message) => {
 		controller.trigger('addCard', [bot, message])
 	})
 
