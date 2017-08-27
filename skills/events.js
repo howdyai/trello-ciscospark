@@ -1,6 +1,14 @@
 
 module.exports = (controller) => {
 
+	controller.on('user_space_join', (bot, message) => {
+		controller.channels.get(message.channel, (err, channel) => {
+			if (channel) {
+				bot.reply(message, `Welcome! Currently this channel is set up to receive alerts from, and interact with, the trello board [${channel.board.name}](${channel.board.url}) from this channel. Send me \`help\` to see  list of available commands.`)
+			}
+		})
+	})
+
 	controller.on('bot_space_join', (bot, message) => {
 		// what middleware includes listeners?
 		console.log('====Bot Space Join')
