@@ -19,6 +19,7 @@ var TrelloWrapper = function(user, channel) {
 	}
 
 	const app_key = process.env.T_KEY
+	console.log({user})
 
 	this.t = new Trello(app_key, user.token || process.env.T_TOKEN)// @TODO dunno if we want a default or not
 
@@ -27,7 +28,6 @@ var TrelloWrapper = function(user, channel) {
 TrelloWrapper.prototype.getBoards = function(data) {
 	console.log(this)
 	return new Promise((resolve, reject) => {
-		console.log('THIS IN PROMISE', this)
 		this.t.get("/1/members/me/boards", { lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, (err, data) => {
 			if (err) {
 				reject(err)

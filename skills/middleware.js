@@ -63,8 +63,9 @@ module.exports = (controller) => {
 				if (message.in_convo) {
 					return next()
 				} 
-				bot.trello = controller.trelloActions.create(message.user)
-				controller.trigger('setupChannel', [bot, message])
+				controller.debug('No channel set up')
+				bot.trello = controller.trelloActions.create(message.trello_user)
+				controller.trigger('selectBoard', [bot, message])
 
 			} else {
 				message.trello_channel = channel

@@ -6,56 +6,44 @@ module.exports = (controller) => {
 		console.log('===SELECT BOARD')
 		bot.trello.getBoards()
 			.then(data => {
-				const boardArray = data
-				const boardList = data.map((el, i) => `\n\n**${i}:** ${el.name}`).join('')
-				// boardList = boardList.join('')
+			const boards = data.map((el, i) => {
+				return {
+					index: `${i + 1}`,
+					display: `\n\n**${i + 1}:** ${el.name}`,
+					url: el.url,
+					id: el.id,
+					name: el.name,
+					lists: el.lists
+				}
+			})
+				const displayBoards = boards.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,'')
 
-					bot.startConversation(message, (err, convo) => {
+					bot.createConversation(message, (err, convo) => {
+						convo.addMessage("Okay! You're all set to receive alerts here from Trello board [{{vars.board.name}}]({{vars.board.url}}). If no list is specified when adding a card, cards will be added to the list {{vars.list.name}}", 'confirm')
 
-						convo.ask(`**Reply with a number from the list to set the default board for this Space.**\n\n*Hint: I can only hear you if you start your message with*  \`Trello\`\n\n${boardList}`, [
+						convo.addQuestion(`**Reply with a number from the list to set the default board for this Space.**\n\n*Hint: I can only hear you if you start your message with*  \`Trello\`\n\n${displayBoards}`, [
 							{
 								pattern: /^[\d]+$/,
 								callback: (res, convo) => {
-									console.log({res})
-									if (boardArray[res.text]) {
+									const board = boards.find(el => el.index == res.text)
+									if (board) {
+										convo.setVar('board', board)
+										convo.say(`Heard! You selected board [**{{vars.board.name}}**]({{vars.board.url}})`)
+										const lists = board.lists.map((el, i) => {
+											return {
+												index: `${i + 1}`,
+												display: `\n\n**${i + 1}:** ${el.name}`,
+												id: el.id,
+												name: el.name,
+											}
+										})
+										console.log({lists})
 
-										const board = boardArray[res.text]
+										convo.setVar('lists', lists)
+										convo.setVar('displayList', lists.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,''))
+										console.log('HELLOOO')
 
-										convo.say(`Setting this channel's board to [**${board.name}**](${board.url}), new cards will be added to **${board.lists[0].name}** list`)
-										if (message.trello_channel && message.trello_channel.webhook) {
-											// update current webhook with trello if it exists, so we dont have zombie webhooks
-											bot.trello.updateBoardWebhook({
-												webhookId: message.trello_channel.webhook.id,
-												boardId: board.id,
-												channel: message.channel
-											}).then(data => {
-
-												controller.storage.channels.save({
-													id: message.channel,
-													board: board,
-													list: board.lists[0],
-													webhook: data
-												})
-											}).catch(err => console.log(err))
-										} else {
-											console.log('======CREATE NEW WEBHOOK')
-											// if no webhook exists for this channel, create one
-											bot.trello.registerBoardWebhook({
-												boardId: board.id,
-												channel: message.channel
-											}).then(data => {
-												controller.storage.channels.save({
-													id: message.channel,
-													board: board,
-													list: board.lists[0],
-													webhook: data
-												}, (err, channel) => {
-													if (err) console.log('=======ERROR SAVING')
-													else console.log('========SAVED CHANNEL: ', channel)
-												})
-											}).catch(err => console.log(err))
-										}
-										convo.next()
+										convo.gotoThread('setList')
 									} else {
 										convo.repeat()
 										convo.next()
@@ -71,7 +59,74 @@ module.exports = (controller) => {
 								}
 							}
 						])
-					convo.next()
+						convo.addQuestion(`**Choose the default list to use when adding cards to {{vars.board.name}}** \n\n**Reply with a number from the list** {{vars.displayList}}`, [
+							{
+								pattern: /^[\d]+$/,
+								callback: (res, convo) => {
+									const list = convo.vars.lists.find(el => el.index == res.text)
+									console.log({list})
+									if (list) {
+										convo.setVar('list', list)
+										convo.say(`**New cards will be added to **{{vars.list.name}}**`)
+										if (message.trello_channel && message.trello_channel.webhook) {
+											// update current webhook with trello if it exists, so we dont have zombie webhooks
+											bot.trello.updateBoardWebhook({
+												webhookId: message.trello_channel.webhook.id,
+												boardId: convo.vars.board.id,
+												listId: list.id,
+												channel: message.channel
+											}).then(data => {
+
+												controller.storage.channels.save({
+													id: message.channel,
+													board: convo.vars.board,
+													list: list,
+													webhook: data
+												}, (err, channel) => {
+													controller.debug('UPDATED CHANNEL:', channel)
+													convo.gotoThread('confirm')
+												})
+											}).catch(err => console.log(err))
+										} else {
+											console.log('======CREATE NEW WEBHOOK')
+											// if no webhook exists for this channel, create one
+											bot.trello.registerBoardWebhook({
+												boardId: convo.vars.board.id,
+												channel: message.channel
+											}).then(webhook => {
+												controller.storage.channels.save({
+													id: message.channel,
+													board: convo.vars.board,
+													list: list,
+													webhook: webhook
+												}, (err, channel) => {
+													if (err) console.log('=======ERROR SAVING')
+
+													else {
+														controller.debug('SAVED CHANNEL: ', channel)
+														convo.gotoThread('confirm')
+													}
+												})
+											}).catch(err => console.log(err))
+										}
+
+									} else {
+										convo.repeat()
+										convo.next()
+
+									}
+								}
+							},
+							{
+								default: true,
+								callback: (res, convo) => {
+								console.log('======NO MATCH CONVO REPEATING')
+								convo.repeat()
+								convo.next()
+								}
+							}
+						], {}, 'setList')
+					convo.activate()
 					})
 
 				})
