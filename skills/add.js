@@ -23,7 +23,7 @@ module.exports = (controller) => {
 				})
 		} else {
 			bot.createConversation(message, (err, convo) => {
-				convo.task.timeLimit = 60000
+				convo.setTimeout(60000)
 				convo.addQuestion(`**What would you like the card's title to be? Respond with the text**`, (res, convo) => {
 					console.log(res.text)
 					if (res.text === 'cancel') {
@@ -35,7 +35,7 @@ module.exports = (controller) => {
 					}
 				}  
 , {}, 'getTitle')
-				convo.addQuestion(`**Ready to add card "{{title}}" to list ${message.trello_channel.list.name}\n\n To add to a different list, respond with the number of one from below. \n\nTo cancel, respond with \`cancel\`. Otherwise, the card will be added to the board in 60 seconds.**\n\n${message.trello_channel.board.lists.reduce((a,b) => `${a}\n\n**${b.index}:** ${b.name}`,'')}`, [
+				convo.addQuestion(`**Ready to add card "{{vars.title}}" to list ${message.trello_channel.list.name}**\n\n To add to a different list, respond with the number of one from below. \n\nTo cancel, respond with \`cancel\`. Otherwise, the card will be added to the board in 60 seconds.\n\n${message.trello_channel.board.lists.reduce((a,b) => `${a}**${b.index}:** ${b.name} `,'')}`, [
 					{
 						pattern: '^cancel$',
 						callback: (res, convo) => {
@@ -73,16 +73,16 @@ module.exports = (controller) => {
 				], {}, 'getList')
 				
 				convo.on('end', convo => {
-					console.log('Phew, its over')
-					if (convo.vars.title) {
-						let list 
-						if (convo.vars.list) {
-							list = convo.vars.list.id
-						}
-						bot.trello.addCard(convo.vars.title, {listId: list}).then(data => console.log({data}))
-									.catch(err => controller.debug(err))
-
-					} 
+					if (convo.status === 'timeout') {
+						if (convo.vars.title) {
+							let list 
+							if (convo.vars.list) {
+								list = convo.vars.list.id
+							}
+							bot.trello.addCard(convo.vars.title, {listId: list}).then(data => console.log({data}))
+										.catch(err => controller.debug(err))
+						} 
+					}
 				})
 				convo.activate()
 				convo.gotoThread('getTitle')
