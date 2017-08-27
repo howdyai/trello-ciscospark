@@ -64,13 +64,13 @@ module.exports = (webserver, controller) => {
         oauth.getOAuthAccessToken(token, secrets.tokenSecret, verifier, function(error, accessToken, accessTokenSecret, results) {
             // In a real app, the accessToken and accessTokenSecret should be stored
             console.log(`in getOAuthAccessToken - accessToken: ${accessToken}, accessTokenSecret: ${accessTokenSecret}, error: ${error}`);
-            response.send(accessToken)
             const data = {
                 user: secrets.user,
                 token: accessToken,
                 channel: secrets.channel
             }
             var bot = controller.spawn({})
+			response.redirect('/success.html')
             controller.trigger('oauthSuccess', [bot, data])
         });
     };
