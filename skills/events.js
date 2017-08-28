@@ -24,7 +24,7 @@ module.exports = (controller) => {
 							console.log(err)
 						} else {
 							console.log('====CREATING ACTIONS WITH NO TOKEN')
-							bot.trello = controller.trelloActions.create(trello)
+							bot.trello = controller.trelloActions.create({config: trello})
 							controller.trigger('selectBoard', [bot, message])
 						}
 					})
@@ -37,9 +37,11 @@ module.exports = (controller) => {
 	})
 
 	controller.on('bot_space_leave', (bot, message) => {
+		console.log({message})
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (channel && channel.webhook) {
-				t.del(`/1/webhooks/${message.channel_config.webhook.id}`, function(err, data) {
+				bot.trello = controller.trelloActions.create({})
+				bot.trello.del(`/1/webhooks/${message.channel_config.webhook.id}`, function(err, data) {
 					if (err) console.log('Error deleting webhook')
 					else console.log({data})
 				})

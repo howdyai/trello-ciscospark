@@ -27,6 +27,7 @@ module.exports = (controller) => {
 								callback: (res, convo) => {
 									const board = boards.find(el => el.index == res.text)
 									if (board) {
+										console.log({board})
 										const lists = board.lists.map((el, i) => {
 											return {
 												index: `${i + 1}`,
@@ -37,13 +38,19 @@ module.exports = (controller) => {
 										})
 										board.lists = lists
 										convo.setVar('board', board)
-										convo.say(`Heard! You selected board [**{{vars.board.name}}**]({{vars.board.url}})`)
+										if (! board.lists.length) {
+											convo.say("**Looks like [**{{vars.board.name}}**]({{vars.board.url}}) doesn't have any lists yet. Create a list on the board and try setting it up again**")
+											convo.next()
+										} else {
+											convo.say(`**Heard! You selected board [**{{vars.board.name}}**]({{vars.board.url}})**`)
 
-										convo.setVar('lists', lists)
-										convo.setVar('displayList', lists.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,''))
-										console.log('HELLOOO')
+											convo.setVar('lists', lists)
+											convo.setVar('displayList', lists.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,''))
+											const displayList = lists.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,'')
+											console.log({displayList})
 
-										convo.gotoThread('setList')
+											convo.gotoThread('setList')
+										}
 									} else {
 										convo.repeat()
 										convo.next()
@@ -64,7 +71,6 @@ module.exports = (controller) => {
 								pattern: /^[\d]+$/,
 								callback: (res, convo) => {
 									const list = convo.vars.lists.find(el => el.index == res.text)
-									console.log({list})
 									if (list) {
 										convo.setVar('list', list)
 										convo.say(`**New cards will be added to **{{vars.list.name}}**`)

@@ -30,7 +30,7 @@ module.exports = (controller) => {
 					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
 				}
 			} else {
-				console.log({config})
+				message.trello_config = config
 				next()
 			}
 		})
@@ -64,7 +64,7 @@ module.exports = (controller) => {
 					return next()
 				} 
 				controller.debug('No channel set up')
-				bot.trello = controller.trelloActions.create(message.trello_user)
+				bot.trello = controller.trelloActions.create({config: message.trello_config, user: message.trello_user})
 				controller.trigger('selectBoard', [bot, message])
 
 			} else {
@@ -80,7 +80,7 @@ module.exports = (controller) => {
 			return next()
 		} 
 		console.log({message})
-		bot.trello = controller.trelloActions.create(message.trello_user, message.trello_channel)
+		bot.trello = controller.trelloActions.create({config: message.trello_config, user: message.trello_user, channel: message.trello_channel})
 		next()
 	})
 

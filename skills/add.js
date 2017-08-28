@@ -2,9 +2,7 @@
 module.exports = (controller) => {
 
 	controller.on('addCard', (bot, message) => {
-		console.log('====MESSAGE IN addCard')
-			// listId will be optional
-		// const listId = undefined//message.trello_channel.list.id
+		console.log('====MESSAGE IN addCard', message)
 		// so addcard can be triggered with or without further input
 		// There are three cases
 		// user: add // no adtl input
@@ -16,7 +14,7 @@ module.exports = (controller) => {
 		const title = message.match[1] 
 		console.log({title})
 		if (title) {
-			bot.trello.addCard(title)
+			bot.trello.addCard(title).then(data => console.log({data}))
 				.catch(err => {
 					bot.reply(message, 'Something went wrong')
 					console.log(err)
