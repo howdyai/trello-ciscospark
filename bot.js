@@ -46,7 +46,7 @@ var controller = Botkit.sparkbot({
     ciscospark_access_token: process.env.access_token,
     studio_token: process.env.studio_token, // get one from studio.botkit.ai to enable content management, stats, message console and more
     secret: process.env.secret, // this is an RECOMMENDED but optional setting that enables validation of incoming webhooks
-    webhook_name: 'Cisco Spark bot created with Botkit, override me before going to production',
+    webhook_name: 'Cisco Spark Botkit Trello Bot',
     studio_command_uri: process.env.studio_command_uri,
 	json_file_store: './.data'
 });

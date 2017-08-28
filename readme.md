@@ -36,12 +36,21 @@ Update the `.env` file with your newly acquired tokens.
 #### Set up your Trello App
 Go to the [Trello app token](https://trello.com/app-key) page. Once logged in, copy the key at the top of the page, and the secret at the bottom of the page into your .env file.
 
+#### Configuring the Bot
+Edit the .env file and add the public address your bot will be running on as your `public_address`. See the note below for more info
+
+Add your email address as the `admin_user`
+
+There are spark specific options to limit the bot to only work for users with an email address from your organizations domain. Add your domain as
+
+> Note: Cisco Spark requires your application be available at an SSL-enabled endpoint. To expose an endpoint during development, we recommend using [localtunnel.me](http://localtunnel.me) or [ngrok](http://ngrok.io), either of which can be used to temporarily expose your bot to the internet. Once stable and published to the real internet, use nginx or another web server to provide an SSL-powered front end to your bot application. 
+
 #### Running the bot
 After you have completed configuring your .env file, launch your bot application by typing:
 
 `node .`
 
-Cisco Spark requires your application be available at an SSL-enabled endpoint. To expose an endpoint during development, we recommend using [localtunnel.me](http://localtunnel.me) or [ngrok](http://ngrok.io), either of which can be used to temporarily expose your bot to the internet. Once stable and published to the real internet, use nginx or another web server to provide an SSL-powered front end to your bot application. 
+If everything is working then the bot will message your on spark with instructions to setup your Trello Organization and start adding boards to channels!
 
 
 ### Extend This Starter Kit
