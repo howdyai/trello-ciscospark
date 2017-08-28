@@ -1,26 +1,16 @@
-# Botkit Starter Kit for Cisco Spark Bots
+# Botkit-Spark Trello Bot
 
-This repo contains everything you need to get started building a Cisco Spark bot with [Botkit](https://botkit.ai) and [Botkit Studio](https://botkit.ai).
+This repo contains everything you need to deploy your own Cisco Spark Trello bot built with [Botkit](https://botkit.ai).
 
 Botkit is designed to ease the process of designing and running useful, creative bots that live inside messaging platforms. Bots are applications that can send and receive messages, and in many cases, appear alongside their human counterparts as users.
 
-Some bots talk like people, others silently work in the background, while others present interfaces much like modern mobile applications. Botkit gives developers the necessary tools for building bots of any kind! It provides an easy-to-understand interface for sending and receiving messages so that developers can focus on creating novel applications and experiences instead of dealing with API endpoints.
-
-Our goal with Botkit is to make bot building easy, fun, and accessible to anyone with the desire to create a future filled with talking machines!
-
 If you are looking to create a bot on other platforms using Glitch, check out the [Botkit project page](https://glitch.com/botkit).
-
-#### Use Botkit Studio
-[Botkit Studio](https://studio.botkit.ai/signup?code=ciscoglitch) is a set of tools that adds capabilities to the open source Botkit library by offering hosted GUI interfaces for script management and action trigger definition. 
-
-While Botkit Studio is *not required* to build a bot using Botkit, we highly recommend it as your bot will be easier to manage, customize and extend.
-
 
 ### Getting Started
 
-There are a few steps to get started on working on a Botkit bot:
+You will need a Cisco Spark developer account, and a Trello developer account. Instructions for both are below. Once the bot is configured properly and running, the bot will message you to complete the setup by logging in with your trello account.
 
-#### Installing Botkit
+#### Installing the Bot
 
 [Remix this project on Glitch](https://glitch.com/edit/#!/import/github/howdyai/botkit-starter-ciscospark)
 
@@ -28,31 +18,39 @@ There are a few steps to get started on working on a Botkit bot:
 
 Clone this repository:
 
-`git clone https://github.com/howdyai/botkit-starter-ciscospark.git`
+`git clone https://github.com/jonchurch/botkit-spark-trello.git`
 
-Install dependencies, including [Botkit](https://github.com/howdyai/botkit):
+Install dependencies
 
 ```
-cd botkit-starter-ciscospark
+cd botkit-spark-trello
 npm install
 ```
 
 #### Set up your Cisco Spark Application 
 Once you have setup your Botkit developer enviroment, the next thing you will want to do is set up a new Cisco Spark application via the [Cisco Spark developer portal](https://developer.ciscospark.com/). This is a multi-step process, but only takes a few minutes. 
+Update the `.env` file with your newly acquired tokens.
 
 [Read this step-by-step guide](https://github.com/howdyai/botkit/blob/master/docs/provisioning/cisco-spark.md) to make sure everything is set up. 
 
-Next, get a Botkit Studio token [from your Botkit developer account](https://studio.botkit.ai/) if you have decided to use Studio. 
+#### Set up your Trello App
+Go to the [Trello app token](https://trello.com/app-key) page. Once logged in, copy the key at the top of the page, and the secret at the bottom of the page into your .env file.
 
-Update the `.env` file with your newly acquired tokens.
+#### Configuring the Bot
+Edit the .env file and add the public address your bot will be running on as your `public_address`. See the note below for more info
 
-Launch your bot application by typing:
+Add your email address as the `admin_user`
+
+There are spark specific options to limit the bot to only work for users with an email address from your organizations domain. Add your domain as
+
+> Note: Cisco Spark requires your application be available at an SSL-enabled endpoint. To expose an endpoint during development, we recommend using [localtunnel.me](http://localtunnel.me) or [ngrok](http://ngrok.io), either of which can be used to temporarily expose your bot to the internet. Once stable and published to the real internet, use nginx or another web server to provide an SSL-powered front end to your bot application. 
+
+#### Running the bot
+After you have completed configuring your .env file, launch your bot application by typing:
 
 `node .`
 
-Cisco Spark requires your application be available at an SSL-enabled endpoint. To expose an endpoint during development, we recommend using [localtunnel.me](http://localtunnel.me) or [ngrok](http://ngrok.io), either of which can be used to temporarily expose your bot to the internet. Once stable and published to the real internet, use nginx or another web server to provide an SSL-powered front end to your bot application. 
-
-Now comes the fun part of [making your bot!](https://github.com/howdyai/botkit/blob/master/docs/readme.md#basic-usage)
+If everything is working then the bot will message your on spark with instructions to setup your Trello Organization and start adding boards to channels!
 
 
 ### Extend This Starter Kit
@@ -79,7 +77,7 @@ Continue your journey to becoming a champion botmaster by [reading the Botkit St
 
 ### Customize Storage
 
-By default, the starter kit uses a simple file-system based storage mechanism to record information about the teams and users that interact with the bot. While this is fine for development, or use by a single team, most developers will want to customize the code to use a real database system.
+By default, the bot uses a simple file-system based storage mechanism to record information about the teams and users that interact with the bot. While this is fine for development, or use by a single team, most developers will want to customize the code to use a real database system.
 
 There are [Botkit plugins for all the major database systems](https://github.com/howdyai/botkit/blob/master/docs/readme-middlewares.md#storage-modules) which can be enabled with just a few lines of code.
 

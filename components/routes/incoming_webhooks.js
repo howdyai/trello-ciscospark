@@ -1,5 +1,10 @@
 var debug = require('debug')('botkit:incoming_webhooks');
 
+const {
+    inlineCard,
+    displayCard
+} = require('../../helpers')
+
 module.exports = function(webserver, controller) {
 
     debug('Configured POST /ciscospark/receive url for receiving events');
@@ -18,50 +23,76 @@ module.exports = function(webserver, controller) {
 
     });
 
-	webserver.post('/trello/receive', function(req, res) {
-		res.status(200).send()
-		console.log('====INCOMING ACTION\n', req.body.action)
+    webserver.post('/trello/receive', function(req, res) {
+        // res.sendStatus(401)
+        // return
+        res.status(200).send()
+        console.log('====INCOMING ACTION for board:', req.body.action.board)
 
-		var bot = controller.spawn({})
+        var bot = controller.spawn({})
 
-		//@TODO put this into its own function
-		const payload = req.body
-		const action = payload.action
-		const channel = {channel: req.query.channel}
+        //@TODO put this into its own function
+        const payload = req.body
+        const action = payload.action
+        const data = action.data
+        const channel = {
+            channel: req.query.channel
+        }
 
-		if (action.type === 'createCard') {
+        const userName = action.memberCreator.fullName
+        let subject = action.memberCreator.fullName
+        let actionText
+        let dataText
 
-			bot.reply(channel, `**${action.data.board.name}** \n\n${action.memberCreator.fullName} created card *"[**${action.data.card.name}**](http://www.trello.com/c/${action.data.card.shortLink})"* in list **${action.data.list.name}**`)
 
-		}
-		if (action.type === 'commentCard') {
+        console.log({
+            action
+        })
+        if (action.type === 'createCard') {
+            actionText = '**created** a card'
+            dataText = displayCard(data)
+        }
+        if (action.type === 'commentCard') {
+            actionText = `**commented** on card ${inlineCard(data.card)}`
+            dataText = `\n\n> "${action.data.text}"`
 
-			bot.reply(channel, `${action.memberCreator.fullName} **commented** *"${action.data.text}"* on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink}) on board ${action.data.board.name}`)
-		}
-		if (action.type === 'updateCard') {
-			if (action.display.translationKey === 'action_move_card_from_list_to_list') {
-				
-				bot.reply(channel, `**${action.data.board.name}** \n\n${action.memberCreator.fullName} moved [*"${action.data.card.name}"*](http://www.trello.com/c/${action.data.card.shortLink}) from **${action.data.listBefore.name}** to **${action.data.listAfter.name}**`)
+        }
+        if (action.type === 'updateCard') {
+            if (action.display.translationKey === 'action_move_card_from_list_to_list') {
+                actionText = `**moved** ${inlineCard(data.card)}`
+                dataText = `from list *${action.data.listBefore.name}* to list *${action.data.listAfter.name}*`
+            } else if (action.display.translationKey === 'action_archived_card') {
+                actionText = `**archived** a card`
+                dataText = displayCard(data)
+            } else {
+              actionText = '**updated** a card';
+              dataText = displayCard(data);
+            }
 
-			}
-			if (action.display.translationKey === 'action_archived_card') {
+        }
+        if (action.type === 'updateCheckItemStateOnCard') {
+            if (action.display.translationKey === 'action_completed_checkitem') {
+                subject = `Done: ${subject}`
+                actionText = `completed ${action.data.checkItem.name}`
+                dataText = ``
+                bot.reply(channel, `${userName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Completed: "${action.data.checkItem.name}"***`)
+                return;
+            }
+            if (action.display.translationKey === 'action_marked_checkitem_incomplete') {
+                bot.reply(channel, `${userName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Incomplete: "${action.data.checkItem.name}"***`)
+                return;
+            }
+        }
+        const multiLine = dataText.split('\n\n').length > 1
+        var reply = {
+          markdown: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
+          //text: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
+        }
+        bot.reply(channel, reply);
 
-				bot.reply(channel, `${action.memberCreator.fullName} **archived** card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink}) on list *${action.data.list.name}* on board **${action.data.board.name}**`)
-			}
-
-		}
-		if (action.type === 'updateCheckItemStateOnCard') {
-			if (action.display.translationKey === 'action_completed_checkitem') {
-				bot.reply(channel, `${action.memberCreator.fullName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Completed: "${action.data.checkItem.name}"***`)
-			}
-			if (action.display.translationKey === 'action_marked_checkitem_incomplete') {
-				bot.reply(channel, `${action.memberCreator.fullName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Incomplete: "${action.data.checkItem.name}"***`)
-			}
-		}
-
-	})
-	// respond with 200 when setting up trello webhook
-	webserver.head('/trello/receive', function(req, res) {
-		res.sendStatus(200)
-	})
+    })
+    // respond with 200 when setting up trello webhook
+    webserver.head('/trello/receive', function(req, res) {
+        res.sendStatus(200)
+    })
 }
