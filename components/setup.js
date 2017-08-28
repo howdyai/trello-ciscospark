@@ -42,7 +42,7 @@ module.exports = (controller) => {
 				// if user is admin user
 				if (data.user === process.env.admin_user) {
 					data.channel = data.user
-					bot.trello = controller.trelloActions.create(userObj)
+					bot.trello = controller.trelloActions.create({user: userObj})
 					controller.trigger('setupOrg', [bot, data])
 				} else {
 					bot.reply({toPersonEmail: data.channel}, "All set up! Here's help text")
@@ -76,7 +76,7 @@ module.exports = (controller) => {
 							console.log({res})
 							const match = orgs.find(el => el.index == res.text)
 							if (match) {
-								convo.say('Wooooowwweeeeee!')
+								convo.say(`You chose ${match.name} as the Trello Organization for your team! Invite me to a channel to setup up a board to use in that channel`)
 								controller.storage.teams.save({
 									// when will I need to lookup the org? When 
 									id: 'trello',
