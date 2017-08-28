@@ -40,7 +40,10 @@ module.exports = (controller) => {
 		console.log({message})
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (channel && channel.webhook) {
-				bot.trello = controller.trelloActions.create({})
+			controller.storage.teams.get('trello', (err, trello) => {
+				if (trello) {
+					console.log('====CREATING ACTIONS WITH NO TOKEN')
+				bot.trello = controller.trelloActions.create({config: trello})
 				bot.trello.del(`/1/webhooks/${message.channel_config.webhook.id}`, function(err, data) {
 					if (err) console.log('Error deleting webhook')
 					else console.log({data})
@@ -50,6 +53,8 @@ module.exports = (controller) => {
 				})
 			} else console.log('==== No Channel record found')
 		})
+			}
+	})
 	})
 
 }

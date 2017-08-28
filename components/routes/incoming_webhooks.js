@@ -51,13 +51,11 @@ module.exports = function(webserver, controller) {
         if (action.type === 'createCard') {
             actionText = '**created** a card'
             dataText = displayCard(data)
-        }
-        if (action.type === 'commentCard') {
+        } else if (action.type === 'commentCard') {
             actionText = `**commented** on card ${inlineCard(data.card)}`
             dataText = `\n\n> "${action.data.text}"`
 
-        }
-        if (action.type === 'updateCard') {
+        } else if (action.type === 'updateCard') {
             if (action.display.translationKey === 'action_move_card_from_list_to_list') {
                 actionText = `**moved** ${inlineCard(data.card)}`
                 dataText = `from list *${action.data.listBefore.name}* to list *${action.data.listAfter.name}*`
@@ -69,8 +67,7 @@ module.exports = function(webserver, controller) {
               dataText = displayCard(data);
             }
 
-        }
-        if (action.type === 'updateCheckItemStateOnCard') {
+        } else if (action.type === 'updateCheckItemStateOnCard') {
             if (action.display.translationKey === 'action_completed_checkitem') {
                 subject = `Done: ${subject}`
                 actionText = `completed ${action.data.checkItem.name}`
@@ -83,12 +80,16 @@ module.exports = function(webserver, controller) {
                 return;
             }
         }
-        const multiLine = dataText.split('\n\n').length > 1
-        var reply = {
-          markdown: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
-          //text: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
-        }
-        bot.reply(channel, reply);
+		// only send an alert if we got an event we are listening to
+		if (dataText) { 
+			const multiLine = dataText.split('\n\n').length > 1
+			const reply = {
+			markdown: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
+			//text: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
+			}
+			bot.reply(channel, reply);
+
+		}
 
     })
     // respond with 200 when setting up trello webhook
