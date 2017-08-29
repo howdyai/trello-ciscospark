@@ -1,4 +1,4 @@
-
+var uuid = require('uuid').v1
 const Trello = require('node-trello')
 
 var WEBHOOK_ROOT = process.env.public_address
@@ -132,11 +132,13 @@ TrelloWrapper.prototype.registerBoardWebhook = function(opts) {
 	// 	boardId: '',
 	// }
 	return new Promise((resolve, reject) => {
-		this.t.post('1/webhooks', {idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}`}, (err, data) => {
+		var webhookUuid = uuid()
+		this.t.post('1/webhooks', {idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}&uuid=${webhookUuid}`}, (err, data) => {
 		if (err) {
 			console.log('Error setting up webhook: ', err)
 			reject(err)
 		} else {
+			data.uuid = webhookUuid
 			resolve(data)
 		}
 	})
@@ -146,11 +148,12 @@ TrelloWrapper.prototype.registerBoardWebhook = function(opts) {
 
 TrelloWrapper.prototype.updateBoardWebhook = function(opts) {
 	return new Promise((resolve, reject) => {
-		this.t.put('1/webhooks/' + opts.webhookId, { idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}` }, (err, data) => {
+		this.t.put('1/webhooks/' + opts.webhook.id, { idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}&uuid=${opts.webhook.uuid}` }, (err, data) => {
 		if (err) {
 			console.log('Error updating webhook: ', err)
 			reject(err)
 		} else {
+			data.uuid = opts.webhook.uuid
 			resolve(data)
 		}
 	})

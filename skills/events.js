@@ -25,6 +25,7 @@ module.exports = (controller) => {
 						} else {
 							console.log('====CREATING ACTIONS WITH NO TOKEN')
 							bot.trello = controller.trelloActions.create({config: trello})
+							console.log('=====TRIGGERING SELECT BOARD')
 							controller.trigger('selectBoard', [bot, message])
 						}
 					})

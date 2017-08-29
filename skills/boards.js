@@ -77,10 +77,10 @@ module.exports = (controller) => {
 										if (message.trello_channel && message.trello_channel.webhook) {
 											// update current webhook with trello if it exists, so we dont have zombie webhooks
 											bot.trello.updateBoardWebhook({
-												webhookId: message.trello_channel.webhook.id,
+												webhook: message.trello_channel.webhook,
 												boardId: convo.vars.board.id,
 												listId: list.id,
-												channel: message.channel
+												channel: message.channel,
 											}).then(data => {
 
 												controller.storage.channels.save({
