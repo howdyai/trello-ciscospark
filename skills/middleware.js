@@ -5,9 +5,10 @@ module.exports = (controller) => {
 
 		// ignore our own bots messages //@TODO this doesnt really belong here
 		if (message.user === controller.identity.emails[0]) {
+			console.log('ignoring a message from' + controller.identity.emails[0])
+			console.log({message})
 					return
 				} 
-		// 
 		bot.findConversation(message, function(convo) {
 			if (convo) {
 				message.in_convo = true;

@@ -10,9 +10,6 @@ module.exports = (controller) => {
 	})
 
 	controller.on('bot_space_join', (bot, message) => {
-		// what middleware includes listeners?
-		console.log('====Bot Space Join')
-		console.log({message})
 		controller.storage.channels.get(message.channel, function(err, channel) {
 				// space joins will have bot identity as user, this works around that
 				controller.api.people.get(message.original_message.actorId).then(identity => {
@@ -41,21 +38,22 @@ module.exports = (controller) => {
 		console.log({message})
 		controller.storage.channels.get(message.channel, (err, channel) => {
 			if (channel && channel.webhook) {
-			controller.storage.teams.get('trello', (err, trello) => {
-				if (trello) {
-					console.log('====CREATING ACTIONS WITH NO TOKEN')
-				bot.trello = controller.trelloActions.create({config: trello})
-				bot.trello.del(`/1/webhooks/${message.channel_config.webhook.id}`, function(err, data) {
-					if (err) console.log('Error deleting webhook')
-					else console.log({data})
-				})
+				console.log('===Deleting channel record')
+				// because all unrecognize webhooks get cut down by the 410, dont _really_ need to deregister via api
+			// controller.storage.teams.get('trello', (err, trello) => {
+			// 	if (trello) {
+			// 		console.log('====CREATING ACTIONS WITH NO TOKEN')
+			// 	bot.trello = controller.trelloActions.create({config: trello})
+			// 	bot.trello.deleteWebhook(`/1/webhooks/${channel.webhook.id}`, function(err, data) {
+			// 		if (err) console.log('Error deleting webhook')
+			// 		else console.log({data})
+			// 	})
 				controller.storage.channels.delete(message.channel, function(err, res) {
 					if (err) console.log('err deleting channel record', err)
 				})
+			
 			} else console.log('==== No Channel record found')
 		})
-			}
-	})
 	})
 
 }
