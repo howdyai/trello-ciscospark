@@ -88,15 +88,18 @@ TrelloWrapper.prototype.searchBoard = function(query, opts) {
 // args should maybe be text: String, opts: object
 // default channel/list settings can be plugged into the wrapper
 // so defaults are inferred if not passed in opts
-TrelloWrapper.prototype.addCard = function(cardTitle, opts) {
+TrelloWrapper.prototype.addCard = function(data) {
 	return new Promise((resolve, reject)=> {
-		var listId = opts && opts.listId ? opts.listId : this.defaultList
-		console.log({listId})
-		if (! listId) {
-			reject('Error, no list provided or inferred')
+		if (!data)  {
+			reject('Error, data arg required')
+		}
+		const listId = this.defaultList
+		if (! data.title) {
+			reject('Error, no title provided')
 		} else {
 			this.t.post('/1/cards/', {
-			name: cardTitle,
+			name: data.title,
+			desc: data.desc || '',
 			idList: listId
 		},
 			function(err, data) {
