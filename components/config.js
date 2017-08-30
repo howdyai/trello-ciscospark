@@ -23,9 +23,9 @@ exports.get = () => {
 
 exports.save = (data) => {
 	return new Promise((resolve, reject) => {
-		const data = JSON.stringify(data);
+		const json = JSON.stringify(data);
 
-		fs.writeFile('./config.json', data, (err) => {
+		fs.writeFile('./config.json', json, (err) => {
 			if (err) {
 				reject(err)
 			} else {

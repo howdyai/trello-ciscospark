@@ -20,13 +20,6 @@ var TrelloWrapper = function(opts) {
 	if (opts.config) {
 		this.defaultOrg = opts.config.orgId
 	}
-	
-	// controller.teams.get('trello', (err, trello) => {
-	// 	if (trello) {
-	// 		defaultOrg
-	// 	}
-	// })
-	// this.defaultOrg = 
 
 	const app_key = process.env.T_KEY
 

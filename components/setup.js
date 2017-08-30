@@ -4,8 +4,8 @@ module.exports = (controller) => {
 	const bot = controller.spawn({})
 
 	// Check on startup if trello is set up for the team, trigger trello setup if not
-	controller.storage.teams.get('trello', (err, config) => {
-		if (! config) {
+	controller.storage.config.get().then(config => {
+		if (! config.token) {
 			controller.trigger('setupTrello', [bot])
 		}
 	})
@@ -77,16 +77,16 @@ module.exports = (controller) => {
 							const match = orgs.find(el => el.index == res.text)
 							if (match) {
 								convo.say(`You chose ${match.name} as the Trello Organization for your team! Invite me to a channel to setup up a board to use in that channel`)
-								controller.storage.teams.save({
+								controller.storage.config.save({
 									// when will I need to lookup the org? When 
-									id: 'trello',
 									orgId: match.orgId,
 									orgName: match.name,
 									token: message.token
-								}, (err, channel) => {
-									if (err) console.log('=======ERROR SAVING')
-									else console.log('========SAVED CHANNEL: ', channel)
 								})
+									.then(config => controller.debug('Config saved!'))
+
+									.catch(err => controller.error('Error saving config:', err))
+
 							} else {
 								convo.say('Sorry, that number was out of range')
 								convo.repeat()

@@ -1,6 +1,4 @@
 
-const config = require('../components/config.js')
-
 module.exports = (controller) => {
 
 	controller.middleware.receive.use((bot, message, next) => {
@@ -24,25 +22,24 @@ module.exports = (controller) => {
 		// trelloConfig.get().then(config => {})
 		// trelloConfig.save().then(config => {})
 		// controller.storage.teams.get('trello', (err, config) => {
-		// 	if (! config) {
-		// 		console.log('====NO CONFIG FOUND IN MIDDLEWARE, TRIGGERING SETUP')
-		// 		if (message.in_convo) {
-		// 			return next()
-		// 		} 
-		// 		if (process.env.admin_user === message.user) {
-		// 			if (message.in_convo)  { return next(); }
-		// 			controller.trigger('setupTrello', [bot, message])
-		// 		} else {
-		// 			bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
-		// 		}
-		// 	} else {
-		// 		message.trello_config = config
-		// 		next()
-		// 	}
 		// })
-		config.get().then(config => {
-			console.log({config})
-		}).catch(err => console.log({err}))
+		controller.storage.config.get().then(config => {
+			if (! config.token) {
+				console.log('====NO TOKEN FOUND IN MIDDLEWARE, TRIGGERING SETUP')
+				if (message.in_convo) {
+					return next()
+				} 
+				if (process.env.admin_user === message.user) {
+					if (message.in_convo)  { return next(); }
+					controller.trigger('setupTrello', [bot, message])
+				} else {
+					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
+				}
+			} else {
+				message.trello_config = config
+				next()
+			}
+		}).catch(err => next(err))
 	})
 
 	// Get user config, or prompt user to auth their trello account
