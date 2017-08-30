@@ -6,7 +6,7 @@ module.exports = (controller) => {
 		console.log('===SELECT BOARD')
 		bot.trello.getBoards()
 			.then(data => {
-				if (!data.length) {
+				if (data.length) {
 				const boards = data.map((el, i) => {
 					return {
 						index: `${i + 1}`,
