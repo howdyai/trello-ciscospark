@@ -1,6 +1,7 @@
 /node_modules
 /.data
 
+/config/config.json
 .env
 *.log
 dev.md

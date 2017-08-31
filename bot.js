@@ -52,7 +52,10 @@ var controller = Botkit.sparkbot({
 });
 
 // controller.resetWebhookSubscriptions()
-controller.storage.config = require(__dirname + '/components/config') 
+controller.storage.config = require(__dirname + '/config/index.js') 
+
+// initialize our trello config file, if none exists
+controller.storage.config.init()
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);

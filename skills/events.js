@@ -18,12 +18,12 @@ module.exports = (controller) => {
 					bot.reply(message, 'Thanks for inviting me! To start using Trello here, assign a board to this Space')
 					controller.storage.config.get().then(config => {
 						console.log('====creating actions with no token')
-						bot.trello = controller.trelloactions.create({config: trello})
+						bot.trello = controller.trelloActions.create({config})
 						console.log('=====triggering select board')
-						controller.trigger('selectboard', [bot, message])
+						controller.trigger('selectBoard', [bot, message])
 
 					})
-					.catch(err => controller.error('Error getting config.json data'))
+					.catch(err => console.log('Error getting config.json data:\n', err))
 
 				})
 			}
