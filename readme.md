@@ -33,6 +33,8 @@ Update the `.env` file with your newly acquired tokens.
 
 [Read this step-by-step guide](https://github.com/howdyai/botkit/blob/master/docs/provisioning/cisco-spark.md) to make sure everything is set up. 
 
+You can limit the bot's usage to only users at your company, by adding the domain to the whitelist on the bot controller in `bot.js`. You can also limit the bot to only be able to interact with users who are a part of your Spark Organization.
+
 #### Set up your Trello App
 Go to the [Trello app token](https://trello.com/app-key) page. Once logged in, copy the key at the top of the page, and the secret at the bottom of the page into your .env file.
 
