@@ -2,7 +2,6 @@
 module.exports = (controller) => {
 
 	controller.on('addCard', (bot, message) => {
-		console.log('====MESSAGE IN addCard', message)
 		// so addcard can be triggered with or without further input
 		// There are three cases
 		// user: add // no adtl input
@@ -12,11 +11,9 @@ module.exports = (controller) => {
 		// user: add to Finished // only list given
 
 		const title = message.match[1] 
-		console.log({title})
 		bot.createConversation(message, (err, convo) => {
 			convo.setTimeout(30000)
 			convo.addQuestion(`**What would you like the card's title to be? Respond with the text**`, (res, convo) => {
-				console.log(res.text)
 				if (res.text === 'cancel') {
 					convo.say('Okay, canceled')
 					convo.next()
@@ -27,12 +24,10 @@ module.exports = (controller) => {
 			}  
 , {}, 'getTitle')
 			convo.addQuestion(`**Ready to add card "{{vars.title}}" to list ${message.trello_channel.list.name} on board [${message.trello_channel.board.name}](${message.trello_channel.board.url})**\n\n> *To add to a description, respond to me with the with text. Otherwise, the card will be added as is in 30 seconds. To cancel adding the card, respond with \`cancel\`.*`, (res, convo) => {
-				console.log(res.text)
 				if (res.text === 'cancel') {
 					convo.say('Okay, canceled')
 				} else {
 					const desc = res.text
-					console.log({desc})
 					convo.setVar('desc', desc)
 
 				}
@@ -42,7 +37,7 @@ module.exports = (controller) => {
 			convo.on('end', convo => {
 				if (convo.status === 'timeout' || 'complete') {
 					if (convo.vars.title) {
-						bot.trello.addCard({title: convo.vars.title, desc: convo.vars.desc}).then(data => console.log({data}))
+						bot.trello.addCard({title: convo.vars.title, desc: convo.vars.desc})
 									.catch(err => controller.debug(err))
 					} 
 				}

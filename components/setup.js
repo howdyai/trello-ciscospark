@@ -31,13 +31,12 @@ module.exports = (controller) => {
 			last_name: '', 
 			email: ''
 		}
-		console.log({data})
 
 
 		// do a get, copy user record
 		controller.storage.users.save(userObj, (err, user) => {
 			if (err) {
-				console.log(err)
+				controller.log('Error saving user', err)
 			} else {
 				// if user is admin user
 				if (data.user === process.env.admin_user) {
@@ -68,12 +67,10 @@ module.exports = (controller) => {
 			const displayOrgs = orgs.map(el => el.display).join('')
 
 			bot.startPrivateConversation(message, function(err, convo) {
-				console.log('====ASK TO CHOOSE ORG')
 				convo.ask(`Which Organization are your team's boards in? Respond with the  number ${displayOrgs}`, [
 					{
 						pattern: /^[\d]+$/,
 						callback: (res, convo) => {
-							console.log({res})
 							const match = orgs.find(el => el.index == res.text)
 							if (match) {
 								convo.say(`You chose ${match.name} as the Trello Organization for your team! Invite me to a channel to setup up a board to use in that channel`)
@@ -83,9 +80,8 @@ module.exports = (controller) => {
 									orgName: match.name,
 									token: message.token
 								})
-									.then(config => controller.debug('Config saved!'))
-
-									.catch(err => controller.error('Error saving config:', err))
+									.then(config => controller.log(`Set organization to ${config.orgName}`))
+									.catch(err => controller.log('Error saving config', err))
 
 							} else {
 								convo.say('Sorry, that number was out of range')

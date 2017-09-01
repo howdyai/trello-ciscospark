@@ -81,7 +81,6 @@ require(__dirname + '/components/setup.js')(controller)
 // Random star trek quote as catchall during testing
 const { randomQuote } = require('trek-quote')
 controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
-	console.log({message})
 	bot.reply(message, `${randomQuote()}\n\n I heard ${message.text}`)
 })
 

@@ -5,9 +5,9 @@ const fs = require('fs')
 exports.init = () => {
 	if (! fs.existsSync(__dirname + '/config.json')) {
 		const config = {
-				orgId: false,//match.orgId,
-				orgName: false,//match.name,
-				token: false,//message.token
+				orgId: '',
+				orgName: '',
+				token: '',
 		}
 		try {
 			fs.writeFileSync(__dirname + '/config.json', JSON.stringify(config))

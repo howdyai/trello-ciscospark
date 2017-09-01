@@ -27,7 +27,6 @@ module.exports = (controller) => {
 									callback: (res, convo) => {
 										const board = boards.find(el => el.index == res.text)
 										if (board) {
-											console.log({board})
 											const lists = board.lists.map((el, i) => {
 												return {
 													index: `${i + 1}`,
@@ -47,7 +46,6 @@ module.exports = (controller) => {
 												convo.setVar('lists', lists)
 												convo.setVar('displayList', lists.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,''))
 												const displayList = lists.reduce((a,b,c) => `${a}\n\n**${b.index}:** ${b.name}`,'')
-												console.log({displayList})
 
 												convo.gotoThread('setList')
 											}
@@ -60,7 +58,6 @@ module.exports = (controller) => {
 								{
 									default: true,
 									callback: (res, convo) => {
-										console.log('======NO MATCH CONVO REPEATING')
 										convo.repeat()
 										convo.next()
 									}
@@ -92,9 +89,8 @@ module.exports = (controller) => {
 														controller.debug('UPDATED CHANNEL:', channel)
 														convo.gotoThread('confirm')
 													})
-												}).catch(err => console.log(err))
+												}).catch(err => console.err(err))
 											} else {
-												console.log('======CREATE NEW WEBHOOK')
 												// if no webhook exists for this channel, create one
 												bot.trello.registerBoardWebhook({
 													boardId: convo.vars.board.id,
@@ -106,14 +102,14 @@ module.exports = (controller) => {
 														list: list,
 														webhook: webhook
 													}, (err, channel) => {
-														if (err) console.log('=======ERROR SAVING')
+														if (err) controller.log('Error saving webhook for channel', err)
 
 														else {
 															controller.debug('SAVED CHANNEL: ', channel)
 															convo.gotoThread('confirm')
 														}
 													})
-												}).catch(err => console.log(err))
+												}).catch(err => controller.log(`Error registering trello webhook for channel ${message.channel}`, err.message))
 											}
 
 										} else {
@@ -126,7 +122,6 @@ module.exports = (controller) => {
 								{
 									default: true,
 									callback: (res, convo) => {
-									console.log('======NO MATCH CONVO REPEATING')
 									convo.repeat()
 									convo.next()
 									}

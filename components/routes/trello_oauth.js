@@ -10,12 +10,12 @@ module.exports = (webserver, controller) => {
     */
 
     webserver.get("/login", function(request, response) {
-        console.log(`GET '/login' ð¤  ${Date()}`);
+        controller.log(`GET '/login' ð¤  ${Date()}`);
         login(request, response);
     });
 
     webserver.get("/callback", function(request, response) {
-        console.log(`GET '/callback' ð¤  ${Date()}`);
+        controller.log(`GET '/callback' ð¤  ${Date()}`);
         callback(request, response);
     });
 
@@ -29,16 +29,12 @@ module.exports = (webserver, controller) => {
     const authorizeURL = "https://trello.com/1/authorize";
     const appName = "Trello Spark Bot";
 
-    // Be sure to include your key and secret in ð.env âï¸ over there.
-    // You can get your key and secret from Trello at: https://trello.com/app-key
     const key = process.env.T_KEY;
     const secret = process.env.T_SECRET;
 
     // Trello redirects the user here after authentication
     const loginCallback = `${process.env.public_address}/callback`
 
-    // You should have {"token": "tokenSecret"} pairs in a real application
-    // Storage should be more permanent (redis would be a good choice)
     const oauth_secrets = {};
 
     const oauth = new OAuth(requestURL, accessURL, key, secret, "1.0A", loginCallback, "HMAC-SHA1")
@@ -47,7 +43,7 @@ module.exports = (webserver, controller) => {
         const user = req.query.user
         const channel = req.query.channel
         oauth.getOAuthRequestToken(function(error, token, tokenSecret, results) {
-            console.log(`in getOAuthRequestToken - user: ${user}, channel: ${channel}, token: ${token}, tokenSecret: ${tokenSecret}, resultes ${JSON.stringify(results)}, error: ${JSON.stringify(error)}`);
+            // controller.log(`in getOAuthRequestToken - user: ${user}, channel: ${channel}, token: ${token}, tokenSecret: ${tokenSecret}, resultes ${JSON.stringify(results)}, error: ${JSON.stringify(error)}`);
             oauth_secrets[token] = {
                 tokenSecret,
                 user,
@@ -62,8 +58,7 @@ module.exports = (webserver, controller) => {
         const secrets = oauth_secrets[token];
         const verifier = request.query.oauth_verifier;
         oauth.getOAuthAccessToken(token, secrets.tokenSecret, verifier, function(error, accessToken, accessTokenSecret, results) {
-            // In a real app, the accessToken and accessTokenSecret should be stored
-            console.log(`in getOAuthAccessToken - accessToken: ${accessToken}, accessTokenSecret: ${accessTokenSecret}, error: ${error}`);
+            // controller.log(`in getOAuthAccessToken - accessToken: ${accessToken}, accessTokenSecret: ${accessTokenSecret}, error: ${error}`);
             const data = {
                 user: secrets.user,
                 token: accessToken,

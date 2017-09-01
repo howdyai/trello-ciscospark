@@ -5,8 +5,6 @@ module.exports = (controller) => {
 
 		// ignore our own bots messages //@TODO this doesnt really belong here
 		if (message.user === controller.identity.emails[0]) {
-			console.log('ignoring a message from' + controller.identity.emails[0])
-			console.log({message})
 					return
 				} 
 		bot.findConversation(message, function(convo) {
@@ -25,10 +23,13 @@ module.exports = (controller) => {
 		// })
 		controller.storage.config.get().then(config => {
 			if (! config.token) {
-				console.log('====NO TOKEN FOUND IN MIDDLEWARE, TRIGGERING SETUP')
+
 				if (message.in_convo) {
 					return next()
 				} 
+
+				controller.log('No admin token found, triggering setup')
+
 				if (process.env.admin_user === message.user) {
 					if (message.in_convo)  { return next(); }
 					controller.trigger('setupTrello', [bot, message])

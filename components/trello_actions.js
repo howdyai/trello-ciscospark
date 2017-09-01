@@ -2,13 +2,15 @@ var uuid = require('uuid').v1
 const Trello = require('node-trello')
 
 var WEBHOOK_ROOT = process.env.public_address
+const app_key = process.env.T_KEY
 
 var TrelloWrapper = function(opts) {
-	console.log('===== ARGUEMNTS LENGTH',arguments.length)
-	if (opts.user === undefined) {
-		console.log('user undefined')
+	let token 
+	if (! opts.user) {
 		// use admin token for system actions like configuring webhooks
-		opts.user = {token: opts.config.token}
+		token = opts.config.token
+	} else {
+		token = opts.user.token
 	}
 
 	if (opts.channel && opts.channel.board && opts.channel.list) {
@@ -17,23 +19,17 @@ var TrelloWrapper = function(opts) {
 		this.channelId = opts.channel.id
 	}
 
-	if (opts.config) {
-		this.defaultOrg = opts.config.orgId
-	}
+	this.defaultOrg = opts.config.orgId
 
-	const app_key = process.env.T_KEY
-
-	this.t = new Trello(app_key, opts.user.token)// @TODO dunno if we want a default or not
+	this.t = new Trello(app_key, token)
 
 }
 
 TrelloWrapper.prototype.getBoards = function(data) {
-	console.log(this)
 	return new Promise((resolve, reject) => {
 		this.t.get(`/1/organizations/${this.defaultOrg}/boards`, { filter: 'open', lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, (err, data) => {
 			if (err) {
 				reject(err)
-				console.log('err:', err)
 			} else resolve(data)
 		})
 	})
@@ -43,7 +39,6 @@ TrelloWrapper.prototype.listOrgs = function() {
 	return new Promise((resolve, reject) => {
 		this.t.get('1/members/me/organizations', {fields: 'displayName,id'}, (err, data) => {
 		if (err) {
-			console.log('err:', err)
 			reject(err)
 		} else {
 			resolve(data)
@@ -55,11 +50,11 @@ TrelloWrapper.prototype.listOrgs = function() {
 
 TrelloWrapper.prototype.searchBoard = function(query, opts) {
 	var boardId = opts && opts.boardId ? opts.boardId : this.defaultBoard
-	if (! boardId) {
-		console.log('Error, no board default set or provided')
-		return
-	}
 	return new Promise((resolve, reject) => {
+		if (! boardId) {
+			reject({message: 'Error, no board default set or provided'})
+			return
+		}
 		this.t.get('1/search', {
 			query: query,
 			modelTypes: 'cards',
@@ -70,7 +65,6 @@ TrelloWrapper.prototype.searchBoard = function(query, opts) {
 		},
 			(err, data) => {
 		if (err) {
-			console.log('err:', err)
 			reject(err)
 		} else {
 			resolve(data)
@@ -97,7 +91,6 @@ TrelloWrapper.prototype.addCard = function(data) {
 		},
 			function(err, data) {
 				if (err) {
-					console.log('err:', err)
 					reject(err)
 				} else {
 					resolve(data)
@@ -113,7 +106,6 @@ TrelloWrapper.prototype.moveCard = function(cardId, listId) {
 	return new Promise((resolve, reject)=> {
 		this.t.put(`1/cards/${cardId}`, {idList: listId}, (err, data) => {
 			if (err) {
-				console.log('err:', err)
 				reject(err)
 			} else {
 				resolve(data)
@@ -123,15 +115,10 @@ TrelloWrapper.prototype.moveCard = function(cardId, listId) {
 }
 
 TrelloWrapper.prototype.registerBoardWebhook = function(opts) {
-	// opts = {
-	// 	channel: '',
-	// 	boardId: '',
-	// }
 	return new Promise((resolve, reject) => {
 		var webhookUuid = uuid()
 		this.t.post('1/webhooks', {idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}&uuid=${webhookUuid}`}, (err, data) => {
 		if (err) {
-			console.log('Error setting up webhook: ', err)
 			reject(err)
 		} else {
 			data.uuid = webhookUuid
@@ -146,7 +133,6 @@ TrelloWrapper.prototype.updateBoardWebhook = function(opts) {
 	return new Promise((resolve, reject) => {
 		this.t.put('1/webhooks/' + opts.webhook.id, { idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}&uuid=${opts.webhook.uuid}` }, (err, data) => {
 		if (err) {
-			console.log('Error updating webhook: ', err)
 			reject(err)
 		} else {
 			data.uuid = opts.webhook.uuid
@@ -157,6 +143,10 @@ TrelloWrapper.prototype.updateBoardWebhook = function(opts) {
 }
 
 exports.create = function(opts) {
+	if (! opts) {
+		console.log('Error, no options passed to trello wrapper')
+		return
+	}
 	return new TrelloWrapper(opts)
 }
 
