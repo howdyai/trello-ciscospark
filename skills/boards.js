@@ -21,7 +21,7 @@ module.exports = (controller) => {
 						bot.createConversation(message, (err, convo) => {
 							convo.addMessage("Okay! You're all set to receive alerts here from Trello board [{{vars.board.name}}]({{vars.board.url}}). If no list is specified when adding a card, cards will be added to the list {{vars.list.name}}", 'confirm')
 
-							convo.addQuestion(`**Reply with a number from the list to set the default board for this Space.**\n\n*Hint: I can only hear you if you start your message with*  \`Trello\`\n\n${displayBoards}`, [
+							convo.addQuestion(`**Reply with a number from the list to set the default board for this Space.**\n\n*Hint: I can only hear you if you start your message with*  \`${controller.identity.displayName}\`\n\n${displayBoards}`, [
 								{
 									pattern: /^[\d]+$/,
 									callback: (res, convo) => {
