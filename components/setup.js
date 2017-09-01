@@ -4,8 +4,8 @@ module.exports = (controller) => {
 	const bot = controller.spawn({})
 
 	// Check on startup if trello is set up for the team, trigger trello setup if not
-	controller.storage.teams.get('trello', (err, config) => {
-		if (! config) {
+	controller.storage.config.get().then(config => {
+		if (! config.token) {
 			controller.trigger('setupTrello', [bot])
 		}
 	})
@@ -31,13 +31,12 @@ module.exports = (controller) => {
 			last_name: '', 
 			email: ''
 		}
-		console.log({data})
 
 
 		// do a get, copy user record
 		controller.storage.users.save(userObj, (err, user) => {
 			if (err) {
-				console.log(err)
+				controller.log('Error saving user', err)
 			} else {
 				// if user is admin user
 				if (data.user === process.env.admin_user) {
@@ -68,25 +67,22 @@ module.exports = (controller) => {
 			const displayOrgs = orgs.map(el => el.display).join('')
 
 			bot.startPrivateConversation(message, function(err, convo) {
-				console.log('====ASK TO CHOOSE ORG')
 				convo.ask(`Which Organization are your team's boards in? Respond with the  number ${displayOrgs}`, [
 					{
 						pattern: /^[\d]+$/,
 						callback: (res, convo) => {
-							console.log({res})
 							const match = orgs.find(el => el.index == res.text)
 							if (match) {
 								convo.say(`You chose ${match.name} as the Trello Organization for your team! Invite me to a channel to setup up a board to use in that channel`)
-								controller.storage.teams.save({
+								controller.storage.config.save({
 									// when will I need to lookup the org? When 
-									id: 'trello',
 									orgId: match.orgId,
 									orgName: match.name,
 									token: message.token
-								}, (err, channel) => {
-									if (err) console.log('=======ERROR SAVING')
-									else console.log('========SAVED CHANNEL: ', channel)
 								})
+									.then(config => controller.log(`Set organization to ${config.orgName}`))
+									.catch(err => controller.log('Error saving config', err))
+
 							} else {
 								convo.say('Sorry, that number was out of range')
 								convo.repeat()

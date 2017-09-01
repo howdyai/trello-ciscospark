@@ -8,7 +8,7 @@ If you are looking to create a bot on other platforms using Glitch, check out th
 
 ### Getting Started
 
-You will need a Cisco Spark developer account, and a Trello developer account. Instructions for both are below. Once the bot is configured properly and running, the bot will message you to complete the setup by logging in with your trello account.
+You will need a Cisco Spark developer account, and a Trello App. Instructions to setup both are below. Once the bot is configured properly and running, the bot will message you to complete the setup by logging in with your trello account.
 
 #### Installing the Bot
 
@@ -37,11 +37,11 @@ Update the `.env` file with your newly acquired tokens.
 Go to the [Trello app token](https://trello.com/app-key) page. Once logged in, copy the key at the top of the page, and the secret at the bottom of the page into your .env file.
 
 #### Configuring the Bot
-Edit the .env file and add the public address your bot will be running on as your `public_address`. See the note below for more info
+Edit the .env file and add the public address your bot will be running on as your `public_address`. See the note below for more info. If you're running on glitch, it will be the name of your project, for example `https://example-project.glitch.me`
 
-Add your email address as the `admin_user`
+Add the email address you use for spark as the `admin_user`. This is Spark account the bot will message to complete the setup.
 
-There are spark specific options to limit the bot to only work for users with an email address from your organizations domain. Add your domain as
+There are spark specific options to limit the bot to only work for users with an email address from your organizations domain.
 
 > Note: Cisco Spark requires your application be available at an SSL-enabled endpoint. To expose an endpoint during development, we recommend using [localtunnel.me](http://localtunnel.me) or [ngrok](http://ngrok.io), either of which can be used to temporarily expose your bot to the internet. Once stable and published to the real internet, use nginx or another web server to provide an SSL-powered front end to your bot application. 
 
@@ -51,6 +51,8 @@ After you have completed configuring your .env file, launch your bot application
 `node .`
 
 If everything is working then the bot will message your on spark with instructions to setup your Trello Organization and start adding boards to channels!
+
+Send `help` to the bot for an overview of its capabilities
 
 
 ### Extend This Starter Kit

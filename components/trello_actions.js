@@ -1,14 +1,16 @@
-
+var uuid = require('uuid').v1
 const Trello = require('node-trello')
 
 var WEBHOOK_ROOT = process.env.public_address
+const app_key = process.env.T_KEY
 
 var TrelloWrapper = function(opts) {
-	console.log('===== ARGUEMNTS LENGTH',arguments.length)
-	if (opts.user === undefined) {
-		console.log('user undefined')
+	let token 
+	if (! opts.user) {
 		// use admin token for system actions like configuring webhooks
-		opts.user = {token: opts.config.token}
+		token = opts.config.token
+	} else {
+		token = opts.user.token
 	}
 
 	if (opts.channel && opts.channel.board && opts.channel.list) {
@@ -20,27 +22,16 @@ var TrelloWrapper = function(opts) {
 	if (opts.config) {
 		this.defaultOrg = opts.config.orgId
 	}
-	
-	// controller.teams.get('trello', (err, trello) => {
-	// 	if (trello) {
-	// 		defaultOrg
-	// 	}
-	// })
-	// this.defaultOrg = 
 
-	const app_key = process.env.T_KEY
-
-	this.t = new Trello(app_key, opts.user.token)// @TODO dunno if we want a default or not
+	this.t = new Trello(app_key, token)
 
 }
 
 TrelloWrapper.prototype.getBoards = function(data) {
-	console.log(this)
 	return new Promise((resolve, reject) => {
 		this.t.get(`/1/organizations/${this.defaultOrg}/boards`, { filter: 'open', lists: 'all', list_fields: 'id,name,pos', organization: true, fields: 'name,id,url'}, (err, data) => {
 			if (err) {
 				reject(err)
-				console.log('err:', err)
 			} else resolve(data)
 		})
 	})
@@ -50,7 +41,6 @@ TrelloWrapper.prototype.listOrgs = function() {
 	return new Promise((resolve, reject) => {
 		this.t.get('1/members/me/organizations', {fields: 'displayName,id'}, (err, data) => {
 		if (err) {
-			console.log('err:', err)
 			reject(err)
 		} else {
 			resolve(data)
@@ -62,11 +52,11 @@ TrelloWrapper.prototype.listOrgs = function() {
 
 TrelloWrapper.prototype.searchBoard = function(query, opts) {
 	var boardId = opts && opts.boardId ? opts.boardId : this.defaultBoard
-	if (! boardId) {
-		console.log('Error, no board default set or provided')
-		return
-	}
 	return new Promise((resolve, reject) => {
+		if (! boardId) {
+			reject({message: 'Error, no board default set or provided'})
+			return
+		}
 		this.t.get('1/search', {
 			query: query,
 			modelTypes: 'cards',
@@ -77,7 +67,6 @@ TrelloWrapper.prototype.searchBoard = function(query, opts) {
 		},
 			(err, data) => {
 		if (err) {
-			console.log('err:', err)
 			reject(err)
 		} else {
 			resolve(data)
@@ -88,20 +77,22 @@ TrelloWrapper.prototype.searchBoard = function(query, opts) {
 // args should maybe be text: String, opts: object
 // default channel/list settings can be plugged into the wrapper
 // so defaults are inferred if not passed in opts
-TrelloWrapper.prototype.addCard = function(cardTitle, opts) {
+TrelloWrapper.prototype.addCard = function(data) {
 	return new Promise((resolve, reject)=> {
-		var listId = opts && opts.listId ? opts.listId : this.defaultList
-		console.log({listId})
-		if (! listId) {
-			reject('Error, no list provided or inferred')
+		if (!data)  {
+			reject('Error, data arg required')
+		}
+		const listId = this.defaultList
+		if (! data.title) {
+			reject('Error, no title provided')
 		} else {
 			this.t.post('/1/cards/', {
-			name: cardTitle,
+			name: data.title,
+			desc: data.desc || '',
 			idList: listId
 		},
 			function(err, data) {
 				if (err) {
-					console.log('err:', err)
 					reject(err)
 				} else {
 					resolve(data)
@@ -117,7 +108,6 @@ TrelloWrapper.prototype.moveCard = function(cardId, listId) {
 	return new Promise((resolve, reject)=> {
 		this.t.put(`1/cards/${cardId}`, {idList: listId}, (err, data) => {
 			if (err) {
-				console.log('err:', err)
 				reject(err)
 			} else {
 				resolve(data)
@@ -127,16 +117,13 @@ TrelloWrapper.prototype.moveCard = function(cardId, listId) {
 }
 
 TrelloWrapper.prototype.registerBoardWebhook = function(opts) {
-	// opts = {
-	// 	channel: '',
-	// 	boardId: '',
-	// }
 	return new Promise((resolve, reject) => {
-		this.t.post('1/webhooks', {idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}`}, (err, data) => {
+		var webhookUuid = uuid()
+		this.t.post('1/webhooks', {idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}&uuid=${webhookUuid}`}, (err, data) => {
 		if (err) {
-			console.log('Error setting up webhook: ', err)
 			reject(err)
 		} else {
+			data.uuid = webhookUuid
 			resolve(data)
 		}
 	})
@@ -146,11 +133,11 @@ TrelloWrapper.prototype.registerBoardWebhook = function(opts) {
 
 TrelloWrapper.prototype.updateBoardWebhook = function(opts) {
 	return new Promise((resolve, reject) => {
-		this.t.put('1/webhooks/' + opts.webhookId, { idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}` }, (err, data) => {
+		this.t.put('1/webhooks/' + opts.webhook.id, { idModel: opts.boardId, callbackURL: `${WEBHOOK_ROOT}/trello/receive?channel=${opts.channel}&uuid=${opts.webhook.uuid}` }, (err, data) => {
 		if (err) {
-			console.log('Error updating webhook: ', err)
 			reject(err)
 		} else {
+			data.uuid = opts.webhook.uuid
 			resolve(data)
 		}
 	})
@@ -158,6 +145,10 @@ TrelloWrapper.prototype.updateBoardWebhook = function(opts) {
 }
 
 exports.create = function(opts) {
+	if (! opts) {
+		console.log('Error, no options passed to trello wrapper')
+		return
+	}
 	return new TrelloWrapper(opts)
 }
 

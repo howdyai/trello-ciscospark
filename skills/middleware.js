@@ -7,7 +7,6 @@ module.exports = (controller) => {
 		if (message.user === controller.identity.emails[0]) {
 					return
 				} 
-		// 
 		bot.findConversation(message, function(convo) {
 			if (convo) {
 				message.in_convo = true;
@@ -17,12 +16,20 @@ module.exports = (controller) => {
 	});	
 
 	controller.middleware.receive.use((bot, message, next) => {
-		controller.storage.teams.get('trello', (err, config) => {
-			if (! config) {
-				console.log('====NO CONFIG FOUND IN MIDDLEWARE, TRIGGERING SETUP')
+		// I want to replace getting global config data from the botkit storage with a simple config.json file
+		// trelloConfig.get().then(config => {})
+		// trelloConfig.save().then(config => {})
+		// controller.storage.teams.get('trello', (err, config) => {
+		// })
+		controller.storage.config.get().then(config => {
+			if (! config.token) {
+
 				if (message.in_convo) {
 					return next()
 				} 
+
+				controller.log('No admin token found, triggering setup')
+
 				if (process.env.admin_user === message.user) {
 					if (message.in_convo)  { return next(); }
 					controller.trigger('setupTrello', [bot, message])
@@ -33,7 +40,7 @@ module.exports = (controller) => {
 				message.trello_config = config
 				next()
 			}
-		})
+		}).catch(err => next(err))
 	})
 
 	// Get user config, or prompt user to auth their trello account

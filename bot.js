@@ -51,11 +51,17 @@ var controller = Botkit.sparkbot({
 	json_file_store: './.data'
 });
 
+// controller.resetWebhookSubscriptions()
+controller.storage.config = require(__dirname + '/config/index.js') 
+
+// initialize our trello config file, if none exists
+controller.storage.config.init()
+
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
 
 // Add trello api wrapper
-controller.trelloActions = require('./components/trello_actions.js')
+controller.trelloActions = require(__dirname + '/components/trello_actions.js')
 
 // Tell Cisco Spark to start sending events to this application
 require(__dirname + '/components/subscribe_events.js')(controller);
@@ -75,7 +81,6 @@ require(__dirname + '/components/setup.js')(controller)
 // Random star trek quote as catchall during testing
 const { randomQuote } = require('trek-quote')
 controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
-	console.log({message})
 	bot.reply(message, `${randomQuote()}\n\n I heard ${message.text}`)
 })
 
