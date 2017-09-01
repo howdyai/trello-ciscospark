@@ -19,7 +19,9 @@ var TrelloWrapper = function(opts) {
 		this.channelId = opts.channel.id
 	}
 
-	this.defaultOrg = opts.config.orgId
+	if (opts.config) {
+		this.defaultOrg = opts.config.orgId
+	}
 
 	this.t = new Trello(app_key, token)
 
