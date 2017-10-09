@@ -1,95 +1,125 @@
+var debug = require('debug')('trello:middleware');
 
 module.exports = (controller) => {
 
-	controller.middleware.receive.use((bot, message, next) => {
+  // capture and disgard messages from the bot itself
+  controller.middleware.receive.use((bot, message, next) => {
+    if (message.type != 'self_message') {
+      next();
+    } else {
+      // debug('Disgarding self message...');
+    }
+  });
 
-		// ignore our own bots messages //@TODO this doesnt really belong here
-		if (message.user === controller.identity.emails[0]) {
-					return
-				} 
-		bot.findConversation(message, function(convo) {
-			if (convo) {
-				message.in_convo = true;
-			}
-			next();
-		});
-	});	
+  // this middleware checks to see if a message is already part of a conversation
+  // this helps to prevent the bot from interjecting requests to authenticate
+  // while the user is mid-process!
+  controller.middleware.receive.use((bot, message, next) => {
 
-	controller.middleware.receive.use((bot, message, next) => {
-		// I want to replace getting global config data from the botkit storage with a simple config.json file
-		// trelloConfig.get().then(config => {})
-		// trelloConfig.save().then(config => {})
-		// controller.storage.teams.get('trello', (err, config) => {
-		// })
-		controller.storage.config.get().then(config => {
-			if (! config.token) {
-
-				if (message.in_convo) {
-					return next()
-				} 
-
-				controller.log('No admin token found, triggering setup')
-
-				if (process.env.admin_user === message.user) {
-					if (message.in_convo)  { return next(); }
-					controller.trigger('setupTrello', [bot, message])
-				} else {
-					bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
-				}
-			} else {
-				message.trello_config = config
-				next()
-			}
-		}).catch(err => next(err))
-	})
-
-	// Get user config, or prompt user to auth their trello account
-	controller.middleware.receive.use((bot, message, next) => {
-
-		controller.storage.users.get(message.user, (err, user) => {
-			if (! user) {
-				if (message.in_convo) {
-					return next()
-				} 
-				controller.debug('=====No user record found, triggering setupUser')
-				controller.trigger('setupUser', [bot, message])
-			} else {
-				message.trello_user = user
-				next()
-			}
-		})
+    if (message.type == 'direct_message' || message.type == 'direct_mention') {
+      bot.findConversation(message, function(convo) {
+        if (convo) {
+          message.in_convo = true;
+        }
+        next();
+      });
+    } else {
+      next();
+    }
+  });
 
 
-	})
+  // load the global trello configuration
+  // if it is not present, fire the setupTrello event
+  controller.middleware.receive.use((bot, message, next) => {
+    controller.storage.config.get().then(config => {
+      if (!config.token) {
 
-	// Get channel config, or prompt user to set up a board for the channel
-	controller.middleware.receive.use((bot, message, next) => {
+        if (message.in_convo) {
+          return next()
+        }
 
-		controller.storage.channels.get(message.channel, (err, channel) => {
-			if (! channel) {
-				if (message.in_convo) {
-					return next()
-				} 
-				controller.debug('No channel set up')
-				bot.trello = controller.trelloActions.create({config: message.trello_config, user: message.trello_user})
-				controller.trigger('selectBoard', [bot, message])
+        debug('No admin token found, triggering setup')
 
-			} else {
-				message.trello_channel = channel
-				next()
-			}
-		})
-	})
+        if (process.env.admin_user === message.user) {
+          controller.trigger('setupTrello', [bot, message])
+        } else {
+          bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
+        }
+      } else {
+        message.trello_config = config
+        next()
+      }
+    }).catch(err => next(err))
+  });
 
-	// If user and board are set up, configure trello wrapper for their account
-	controller.middleware.receive.use((bot, message, next) => {
-		if (message.in_convo) {
-			return next()
-		} 
-		console.log({message})
-		bot.trello = controller.trelloActions.create({config: message.trello_config, user: message.trello_user, channel: message.trello_channel})
-		next()
-	})
+
+  // Get user config, or prompt user to auth their trello account
+  controller.middleware.receive.use((bot, message, next) => {
+    if (message.type == 'direct_message' || message.type == 'direct_mention') {
+      controller.storage.users.get(message.user, (err, user) => {
+        if (!user) {
+          if (message.in_convo) {
+            return next()
+          }
+          debug('=====No user record found, triggering setupUser')
+          controller.trigger('setupUser', [bot, message])
+        } else {
+          message.trello_user = user
+          next()
+        }
+      })
+    } else {
+      next();
+    }
+  });
+
+  // Get channel config, or prompt user to set up a board for the channel
+  controller.middleware.receive.use((bot, message, next) => {
+    if (message.type == 'direct_message' || message.type == 'direct_mention') {
+      controller.storage.channels.get(message.channel, (err, channel) => {
+        if (!channel) {
+          if (message.in_convo) {
+            return next()
+          }
+          debug('No channel set up, triggering selectBoard')
+          bot.trello = controller.trelloActions.create({
+            config: message.trello_config,
+            user: message.trello_user
+          })
+          controller.trigger('selectBoard', [bot, message])
+
+        } else {
+          message.trello_channel = channel
+          next()
+        }
+      })
+
+    } else {
+      next();
+    }
+  })
+
+  // If user and board are set up, configure trello wrapper for their account
+  controller.middleware.receive.use((bot, message, next) => {
+
+    if (message.in_convo) {
+      return next()
+    }
+    if (message.trello_config && message.trello_user && message.trello_channel) {
+      bot.trello = controller.trelloActions.create({
+        config: message.trello_config,
+        user: message.trello_user,
+        channel: message.trello_channel
+      })
+    } else if (!bot.trello && message.trello_config) {
+      // make sure we have a trello client!
+      bot.trello = controller.trelloActions.create({
+        config: message.trello_config,
+      });
+    }
+    next()
+  });
 
 
 }

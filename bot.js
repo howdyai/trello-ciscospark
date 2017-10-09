@@ -39,7 +39,7 @@ var debug = require('debug')('botkit:main');
 
 // Create the Botkit controller, which controls all instances of the bot.
 var controller = Botkit.sparkbot({
-    debug: true,
+    debug: false,
     // limit_to_domain: ['mycompany.com'],
     // limit_to_org: 'my_cisco_org_id',
     public_address: process.env.public_address + '/ciscospark/receive',
@@ -52,7 +52,7 @@ var controller = Botkit.sparkbot({
 });
 
 // controller.resetWebhookSubscriptions()
-controller.storage.config = require(__dirname + '/config/index.js') 
+controller.storage.config = require(__dirname + '/config/index.js')
 
 // initialize our trello config file, if none exists
 controller.storage.config.init()
@@ -65,9 +65,6 @@ controller.trelloActions = require(__dirname + '/components/trello_actions.js')
 
 // Tell Cisco Spark to start sending events to this application
 require(__dirname + '/components/subscribe_events.js')(controller);
-
-// Enable Dashbot.io plugin
-require(__dirname + '/components/plugin_dashbot.js')(controller);
 
 var normalizedPath = require("path").join(__dirname, "skills");
 require("fs").readdirSync(normalizedPath).forEach(function(file) {

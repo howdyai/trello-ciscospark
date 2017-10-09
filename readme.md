@@ -1,14 +1,14 @@
 # Botkit-Spark Trello Bot
 
-This repo contains everything you need to deploy your own Cisco Spark Trello bot built with [Botkit](https://botkit.ai).
+This project contains everything you need to deploy your own customizable Trello bot for your company in Cisco Spark.
 
-Botkit is designed to ease the process of designing and running useful, creative bots that live inside messaging platforms. Bots are applications that can send and receive messages, and in many cases, appear alongside their human counterparts as users.
+This bot is built with [Botkit](https://botkit.ai) Botkit is designed to ease the process of designing and running useful, creative bots that live inside messaging platforms. Bots are applications that can send and receive messages, and in many cases, appear alongside their human counterparts as users.
 
 If you are looking to create a bot on other platforms using Glitch, check out the [Botkit project page](https://glitch.com/botkit).
 
 ### Getting Started
 
-You will need a Cisco Spark developer account, and a Trello App. Instructions to setup both are below. Once the bot is configured properly and running, the bot will message you to complete the setup by logging in with your trello account.
+You will need a Cisco Spark developer account, and a Trello App. Instructions to setup both are below. Once the bot is configured properly and running, the bot will message you to complete the setup by logging in with your Trello account.
 
 #### Installing the Bot
 
@@ -27,11 +27,11 @@ cd botkit-spark-trello
 npm install
 ```
 
-#### Set up your Cisco Spark Application 
-Once you have setup your Botkit developer enviroment, the next thing you will want to do is set up a new Cisco Spark application via the [Cisco Spark developer portal](https://developer.ciscospark.com/). This is a multi-step process, but only takes a few minutes. 
+#### Set up your Cisco Spark Application
+Once you have setup your Botkit developer enviroment, the next thing you will want to do is set up a new Cisco Spark application via the [Cisco Spark developer portal](https://developer.ciscospark.com/). This is a multi-step process, but only takes a few minutes.
 Update the `.env` file with your newly acquired tokens.
 
-[Read this step-by-step guide](https://github.com/howdyai/botkit/blob/master/docs/provisioning/cisco-spark.md) to make sure everything is set up. 
+[Read this step-by-step guide](https://github.com/howdyai/botkit/blob/master/docs/provisioning/cisco-spark.md) to make sure everything is set up.
 
 You can limit the bot's usage to only users at your company, by adding the domain to the whitelist on the bot controller in `bot.js`. You can also limit the bot to only be able to interact with users who are a part of your Spark Organization.
 
@@ -45,7 +45,7 @@ Add the email address you use for spark as the `admin_user`. This is Spark accou
 
 There are spark specific options to limit the bot to only work for users with an email address from your organizations domain.
 
-> Note: Cisco Spark requires your application be available at an SSL-enabled endpoint. To expose an endpoint during development, we recommend using [localtunnel.me](http://localtunnel.me) or [ngrok](http://ngrok.io), either of which can be used to temporarily expose your bot to the internet. Once stable and published to the real internet, use nginx or another web server to provide an SSL-powered front end to your bot application. 
+> Note: Cisco Spark requires your application be available at an SSL-enabled endpoint. To expose an endpoint during development, we recommend using [localtunnel.me](http://localtunnel.me) or [ngrok](http://ngrok.io), either of which can be used to temporarily expose your bot to the internet. Once stable and published to the real internet, use nginx or another web server to provide an SSL-powered front end to your bot application.
 
 #### Running the bot
 After you have completed configuring your .env file, launch your bot application by typing:
@@ -94,18 +94,18 @@ You can find full documentation for Botkit on our [GitHub page](https://github.c
 ###  Need more help?
 * Glitch allows users to ask the community for help directly from the editor! For more information on raising your hand, [read this blog post.](https://medium.com/glitch/just-raise-your-hand-how-glitch-helps-aa6564cb1685)
 
-* Join our thriving community of Botkit developers and bot enthusiasts at large. Over 4500 members strong, [our open Slack group](http://community.botkit.ai) is _the place_ for people interested in the art and science of making bots. 
+* Join our thriving community of Botkit developers and bot enthusiasts at large. Over 4500 members strong, [our open Slack group](http://community.botkit.ai) is _the place_ for people interested in the art and science of making bots.
 
 You can also find help from members of the Botkit team [in our dedicated Cisco Spark room](https://eurl.io/#SyNZuomKx)!
 
 
  Come to ask questions, share your progress, and commune with your peers!
 
-* We also host a [regular meetup and annual conference called TALKABOT.](http://talkabot.ai) Come meet and learn from other bot developers! 
- 
+* We also host a [regular meetup and annual conference called TALKABOT.](http://talkabot.ai) Come meet and learn from other bot developers!
+
  [Full video of our 2016 event is available on Youtube.](https://www.youtube.com/playlist?list=PLD3JNfKLDs7WsEHSal2cfwG0Fex7A6aok)
 
 
-# About Botkit 
+# About Botkit
 
 Botkit is a product of [Howdy](https://howdy.ai) and made in Austin, TX with the help of a worldwide community of botheads.
