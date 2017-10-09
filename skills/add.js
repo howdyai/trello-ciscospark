@@ -11,31 +11,62 @@ module.exports = (controller) => {
     // user: add Removed kitten virus from mainframe Finished // title, list given
     // user: add to Finished // only list given
 
-    const title = message.match[1]
     bot.createConversation(message, (err, convo) => {
-      convo.setTimeout(30000)
-      convo.addQuestion(`**What would you like the card's title to be? Respond with the text**`, (res, convo) => {
-        if (res.text === 'cancel') {
-          convo.say('Okay, canceled')
-          convo.next()
-        } else {
-          convo.setVar('title', res.text)
-          convo.gotoThread('getDesc')
-        }
-      }, {}, 'getTitle')
-      convo.addQuestion(`**Ready to add card "{{vars.title}}" to list ${message.trello_channel.list.name} on board [${message.trello_channel.board.name}](${message.trello_channel.board.url})**\n\n> *To add to a description, respond to me with the with text. Otherwise, the card will be added as is in 30 seconds. To cancel adding the card, respond with \`cancel\`.*`, (res, convo) => {
-        if (res.text === 'cancel') {
-          convo.say('Okay, canceled')
-        } else {
-          const desc = res.text
-          convo.setVar('desc', desc)
 
-        }
-        convo.next()
-      }, {}, 'getDesc')
+      // wait 30 seconds for a reply to any question.
+      convo.setTimeout(30000);
 
+      const title = message.match[1]
+      if (title) {
+        convo.setVar('title', title)
+        convo.say({
+          text: `Adding "{{{vars.title}}}" to ${message.trello_channel.list.name} on board [${message.trello_channel.board.name}](${message.trello_channel.board.url})`,
+          action: 'getDesc',
+        })
+      }
+
+
+      convo.addQuestion(`Adding a card to *${message.trello_channel.list.name}* on board [${message.trello_channel.board.name}](${message.trello_channel.board.url}).\n\nWhat would you like the card's title to be?`,[
+        {
+          default: true,
+          callback: function(res, convo) {
+            convo.setVar('title', res.text);
+            convo.gotoThread('getDesc');
+          }
+        },
+        {
+          pattern: bot.utterances.quit,
+          callback: function(res, convo) {
+            convo.gotoThread('quit');
+          }
+        }
+      ],{}, 'default');
+
+      convo.addQuestion(`If you'd like to add to a description, tell me now. Otherwise, the card will be added as is in a few seconds. To cancel adding the card, respond with \`quit\`.`,[
+        {
+          default: true,
+          callback: function(res, convo) {
+            convo.setVar('desc', res.text);
+            convo.next();
+          }
+        },
+        {
+          pattern: bot.utterances.quit,
+          callback: function(res, convo) {
+            convo.gotoThread('quit');
+          }
+        }
+      ],{},'getDesc');
+
+      convo.addMessage({
+        text: 'Card canceled.',
+        action: 'stop'
+      },'quit');
+
+
+      // when the conversation ends, add the card.
       convo.on('end', convo => {
-        if (convo.status === 'timeout' || 'complete') {
+        if (convo.status === 'timeout' || convo.status === 'completed') {
           if (convo.vars.title) {
             bot.trello.addCard({
                 title: convo.vars.title,
@@ -45,13 +76,9 @@ module.exports = (controller) => {
           }
         }
       })
+
       convo.activate()
-      if (title) {
-        convo.setVar('title', title)
-        convo.gotoThread('getDesc')
-      } else {
-        convo.gotoThread('getTitle')
-      }
+
     })
 
   })

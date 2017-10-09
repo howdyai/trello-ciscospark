@@ -6,7 +6,7 @@ module.exports = (controller) => {
     debug('A new user joined the channel: ', message.user,' in channel ', message.channel);
     controller.channels.get(message.channel, (err, channel) => {
       if (channel) {
-        bot.reply(message, `Welcome! Currently this channel is set up to receive alerts from, and interact with, the trello board [${channel.board.name}](${channel.board.url}) from this channel. Send me \`help\` to see  list of available commands.`)
+        bot.reply(message, `Welcome! Currently this channel is set up to receive alerts from, and interact with, the Trello board [${channel.board.name}](${channel.board.url}) from this channel. Send me \`help\` to see  list of available commands.`)
       }
     })
   })

@@ -17,5 +17,10 @@ exports.displayCard = (data) => {
 }
 
 exports.inlineCard = (card) => {
+	return `[${card.name}](http://www.trello.com/c/${card.id})`
+}
+
+
+exports.resultsCard = (card) => {
 	return `[${card.name}](http://www.trello.com/c/${card.id}) in *${card.list.name}*`
 }

@@ -1,4 +1,4 @@
-var debug = require('debug')('botkit:incoming_webhooks');
+var debug = require('debug')('trello:incoming_webhooks');
 
 const {
   inlineCard,
@@ -9,6 +9,7 @@ module.exports = function(webserver, controller) {
 
   webserver.post('/trello/receive', function(req, res) {
 
+
     var bot = controller.spawn({})
 
     //@TODO put this into its own function
@@ -16,71 +17,74 @@ module.exports = function(webserver, controller) {
     const action = payload.action
     const data = action.data
     const context = {
-      channel: req.query.channel
+      channel: req.query.channel,
+      action: action,
+      user: action.memberCreator.fullName,
     }
     const webhookUuid = req.query.uuid
 
+    debug('GOT POST TO /trello/receive', payload);
+
+
     controller.storage.channels.get(req.query.channel, (err, channel) => {
-      if (channel && channel.webhook.uuid === webhookUuid) {
-        res.status(200).send()
 
-        const userName = action.memberCreator.fullName
-        let subject = action.memberCreator.fullName
-        let actionText
-        let dataText
+      debug('GOT RESPONSE FROM STORAGE', err, channel);
 
-        if (action.type === 'createCard') {
-          actionText = '**created** a card'
-          dataText = displayCard(data)
-        } else if (action.type === 'commentCard') {
-          actionText = `**commented** on card ${inlineCard(data.card)}`
-          dataText = `\n\n> "${action.data.text}"`
+      if (!err && channel && channel.webhook && channel.webhook.uuid === webhookUuid) {
+        debug('SENDING 200 response code');
+        res.status(200).send();
 
-        } else if (action.type === 'updateCard') {
-          if (action.display.translationKey === 'action_move_card_from_list_to_list') {
-            actionText = `**moved** ${inlineCard(data.card)}`
-            dataText = `from list *${action.data.listBefore.name}* to list *${action.data.listAfter.name}*`
-          } else if (action.display.translationKey === 'action_archived_card') {
-            actionText = `**archived** a card`
-            dataText = displayCard(data)
-          } else {
-            actionText = '**updated** a card';
-            dataText = displayCard(data);
-          }
+        switch(action.type) {
 
-        } else if (action.type === 'updateCheckItemStateOnCard') {
-          if (action.display.translationKey === 'action_completed_checkitem') {
-            subject = `Done: ${subject}`
-            actionText = `completed ${action.data.checkItem.name}`
-            dataText = ``
-            bot.reply(context, `${userName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Completed: "${action.data.checkItem.name}"***`)
-            return;
-          }
-          if (action.display.translationKey === 'action_marked_checkitem_incomplete') {
-            bot.reply(context, `${userName} updated **${action.data.checklist.name}** on card ["${action.data.card.name}"](http://www.trello.com/c/${action.data.card.shortLink})\n\n***Incomplete: "${action.data.checkItem.name}"***`)
-            return;
-          }
-        }
-        // only send an alert if we got an event we are listening to
-        if (dataText) {
-          const multiLine = dataText.split('\n\n').length > 1
-          const reply = {
-            markdown: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
-            //text: `${multiLine ? '' : '> '}${subject} ${actionText} ${dataText}`,
-          }
-          bot.reply(context, reply);
+          case 'createCard':
+            controller.trigger('trello_createCard', [bot, context, data]);
+            break;
+          case 'commentCard':
+            controller.trigger('trello_commentCard', [bot, context, data]);
+            break;
+          case 'updateCard':
+            switch (action.display.translationKey) {
+              case 'action_move_card_from_list_to_list':
+                controller.trigger('trello_moveCard', [bot, context, data]);
+                break;
+              case 'action_archived_card':
+                controller.trigger('trello_archiveCard', [bot, context, data]);
+                break;
+              case 'action_moved_card_higher':
+                break;
 
+              default:
+                controller.trigger('trello_updateCard', [bot, context, data]);
+                break;
+            }
+            break;
+          case 'updateCheckItemStateOnCard':
+            switch (action.display.translationKey) {
+              case 'action_completed_checkitem':
+                controller.trigger('trello_checkItemComplete', [bot, context, data]);
+                break;
+
+              case 'action_marked_checkitem_incomplete':
+                controller.trigger('trello_checkItemIncomplete', [bot, context, data]);
+                break;
+            }
+            break;
         }
 
       } else {
-        res.send(410).send()
+
+        debug('SENDING 401 response code');
+       res.sendStatus(401);
       }
     })
 
 
   })
+
+
   // respond with 200 when setting up trello webhook
   webserver.head('/trello/receive', function(req, res) {
+    debug('GOT HEAD REQUEST ON /trello/receive');
     res.sendStatus(200)
   })
 }

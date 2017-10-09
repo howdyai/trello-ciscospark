@@ -75,10 +75,8 @@ require("fs").readdirSync(normalizedPath).forEach(function(file) {
 require(__dirname + '/components/setup.js')(controller)
 
 
-// Random star trek quote as catchall during testing
-const { randomQuote } = require('trek-quotes')
 controller.hears('(.*)', 'direct_mention,direct_message', (bot, message) => {
-	bot.reply(message, `${randomQuote()}\n\n I heard ${message.text}`)
+  controller.trigger('help', [bot, message]);
 })
 
 
