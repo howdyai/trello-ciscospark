@@ -12,6 +12,18 @@
       "public_address": {
           "description": "The ssl-enabled url for this app"
       },
+      "admin_user": {
+          "description": "Email of the admin user (same as Cisco Spark user id)"
+      },
+      "T_SECRET": {
+          "description": "Trello App Secret"
+      },
+      "T_KEY": {
+          "description": "Trello App key"
+      },
+      "public_address": {
+          "description": "The ssl-enabled url for this app"
+      },
       "studio_token": {
           "description": "Token associated with your bot in Botkit Studio",
           "required": false
