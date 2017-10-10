@@ -26,6 +26,7 @@ module.exports = (controller) => {
       }
 
 
+      // Collect the title of the card.
       convo.addQuestion(`Adding a card to *${message.trello_channel.list.name}* on board [${message.trello_channel.board.name}](${message.trello_channel.board.url}).\n\nWhat would you like the card's title to be?`,[
         {
           default: true,
@@ -42,6 +43,7 @@ module.exports = (controller) => {
         }
       ],{}, 'default');
 
+      // collect an optional description for the card.
       convo.addQuestion(`If you'd like to add to a description, tell me now. Otherwise, the card will be added as is in a few seconds. To cancel adding the card, respond with \`quit\`.`,[
         {
           default: true,
@@ -58,6 +60,7 @@ module.exports = (controller) => {
         }
       ],{},'getDesc');
 
+      // set up a message for when the user aborts the process.
       convo.addMessage({
         text: 'Card canceled.',
         action: 'stop'
@@ -71,8 +74,15 @@ module.exports = (controller) => {
             bot.trello.addCard({
                 title: convo.vars.title,
                 desc: convo.vars.desc
-              })
-              .catch(err => controller.debug(err))
+              }).catch(function(err) {
+
+                if (err.statusMessage == 'Unauthorized') {
+                  bot.reply(message, 'Uhoh! Your Trello account is not authorized to access this board. Please contact the administrator.');
+                } else {
+                  bot.reply(message, 'Uhoh! I was unable to add this card due to an error with Trello.\n\n> ' + JSON.stringify(err));
+                }
+
+              });
           }
         }
       })

@@ -64,7 +64,15 @@ module.exports = (controller) => {
           }
 
           next();
-        });
+        }).catch(function(err) {
+
+          if (err.statusMessage == 'Unauthorized') {
+            bot.reply(message, 'Uhoh! Your Trello account is not authorized to access this board. Please contact the administrator.');
+          } else {
+            bot.reply(message, 'Uhoh! I was unable to add this card due to an error with Trello.\n\n> ' + JSON.stringify(err));
+          }
+          convo.stop();
+        })
     });
 
       // display the results

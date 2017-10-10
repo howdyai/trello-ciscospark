@@ -42,6 +42,7 @@ module.exports = (controller) => {
         debug('No admin token found, triggering setup')
 
         if (process.env.admin_user === message.user) {
+          bot.reply(message, "Before you use me, let's finish the setup process!")
           controller.trigger('setupTrello', [bot, message])
         } else {
           bot.reply(message, "Sorry, I'm waiting to be setup by the administrator")
