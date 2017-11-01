@@ -1,6 +1,6 @@
 # Trello Bot for Cisco Spark powered by Botkit
 
-[![Deploy](https://heroku.com/deploy?template=https://github.com/howdyai/trello-ciscospark/master)](https://heroku.com/deploy)
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
 This project contains everything you need to deploy your own customizable Trello bot for your company in Cisco Spark.
 
