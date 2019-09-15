@@ -1,5 +1,7 @@
 # Trello Bot for Cisco Spark powered by Botkit
 
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
 This project contains everything you need to deploy your own customizable Trello bot for your company in Cisco Spark.
 
 This bot is built with [Botkit](https://botkit.ai). Botkit is designed to ease the process of designing and running useful, creative bots that live inside messaging platforms. Bots are applications that can send and receive messages, and in many cases, appear alongside their human counterparts as users.
@@ -117,8 +119,6 @@ You can also find help from members of the Botkit team [in our dedicated Cisco S
 
 ###  Need more help?
 * Glitch allows users to ask the community for help directly from the editor! For more information on raising your hand, [read this blog post.](https://medium.com/glitch/just-raise-your-hand-how-glitch-helps-aa6564cb1685)
-
-* Join our thriving community of Botkit developers and bot enthusiasts at large. Over 4500 members strong, [our open Slack group](http://community.botkit.ai) is _the place_ for people interested in the art and science of making bots.
 
 Come to ask questions, share your progress, and commune with your peers!
 
